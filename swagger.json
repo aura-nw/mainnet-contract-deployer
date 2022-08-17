@@ -1,0 +1,95 @@
+{
+    "info": {
+        "title": "mainnet-contract-deployer API Documentation",
+        "version": "1.0.0",
+        "description": "Moleculer JS Microservice Boilerplate with Typescript, TypeORM, CLI, Service Clients, Swagger, Jest, Docker, Eslint support and everything you will ever need to deploy rock solid projects.."
+    },
+    "host": "localhost:3000",
+    "basePath": "/api",
+    "swagger": "2.0",
+    "paths": {
+        "/v1/deployment/request": {
+            "post": {
+                "tags": [
+                    "Contract Deployment"
+                ],
+                "summary": "Request to deploy a contract on mainnet",
+                "description": "Request to deploy a contract on mainnet",
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "params",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code_id": {
+                                    "required": true,
+                                    "type": "number",
+                                    "description": "Code id of contract"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
+        "/v1/deployment/execute": {
+            "post": {
+                "tags": [
+                    "Contract Deployment"
+                ],
+                "summary": "Admin deploy the requested contract on mainnet",
+                "description": "Admin deploy the requested contract on mainnet",
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "params",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code_id": {
+                                    "required": true,
+                                    "type": "number",
+                                    "description": "Code id of contract"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deployment result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {},
+    "responses": {},
+    "parameters": {},
+    "securityDefinitions": {},
+    "tags": []
+}
