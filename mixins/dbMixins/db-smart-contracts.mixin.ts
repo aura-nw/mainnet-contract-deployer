@@ -2,7 +2,6 @@
 
 import { Config } from "../../common";
 import { DbBaseMixin } from "./db-base.mixin";
-const Sequelize = require("sequelize");
 
 const dbInfo = Config.DB_SMART_CONTRACTS;
 
@@ -36,7 +35,8 @@ const dbBaseMixin = new DbBaseMixin({
             contract_verification: String,
             compiler_version: String,
             s3_location: String,
-            contract_references: String,
+            mainnet_code_id: String,
+            mainnet_upload_status: String,
         }
     },
 });

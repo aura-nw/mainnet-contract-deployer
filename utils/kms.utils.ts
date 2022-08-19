@@ -6,7 +6,7 @@ import { sha256 } from '@cosmjs/crypto';
 import * as axios from 'axios';
 import { Secp256k1Signature } from '@cosmjs/crypto';
 import { Account } from './interface.utils';
-import { Config } from 'common';
+import { Config } from '../common';
 
 export class KMSSigner {
   kmsSignApiUrl = '';

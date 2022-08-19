@@ -1,20 +1,19 @@
 import CallApiMixin from "../../mixins/callApi/call-api.mixin";
 import { Context, Service, ServiceBroker } from "moleculer";
-import { gzip } from 'pako';
 import { Job } from "bull";
 import { Config } from "../../common";
-import { AppConstants, HandleDeploymentRequest } from "../../types";
-import { SmartContracts } from "../../entities";
-import { dbSmartContractsMixin } from "../../mixins/dbMixins";
-import { KMSSigner } from "../../utils/kms.utils";
+import { AppConstants, HandleDeploymentRequest, MainnetUploadStatus, RejectDeploymentParams } from "../../types";
+import { DeploymentRequests, SmartContracts } from "../../entities";
+import { dbDeploymentRequestsMixin } from "../../mixins/dbMixins";
+import { KMSSigner, Network } from "../../utils";
 import { GasPrice, StdFee } from '@cosmjs/stargate';
-import { Network } from "../../utils/network.utils";
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 const QueueService = require('moleculer-bull');
+const nodemailer = require("nodemailer");
 
 export default class HandleDeploymentMainnetService extends Service {
     private callApiMixin = new CallApiMixin().start();
-    private dbSmartContractsMixin = dbSmartContractsMixin;
+    private dbDeploymentRequestsMixin = dbDeploymentRequestsMixin;
     private network: Network = {} as Network;
     private defaultGasPrice = GasPrice.fromString(AppConstants.DEFAULT_GAS_PRICE);
 
@@ -31,30 +30,56 @@ export default class HandleDeploymentMainnetService extends Service {
                     },
                 ),
                 // this.redisMixin,
-                this.dbSmartContractsMixin,
+                this.dbDeploymentRequestsMixin,
                 this.callApiMixin,
             ],
             queues: {
                 'handle.deployment-mainnet': {
                     concurrency: parseInt(Config.CONCURRENCY_HANDLE_DEPLOYMENT, 10),
-                    async process(job: Job): Promise<SmartContracts> {
+                    process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        const result = await this.handleJob(job.data.smart_contract);
+                        this.handleJob(job.data.smart_contract);
                         job.progress(100);
-                        return result;
+                        return true;
+                    },
+                },
+                'reject.deployment-mainnet': {
+                    concurrency: parseInt(Config.CONCURRENCY_HANDLE_DEPLOYMENT, 10),
+                    process(job: Job) {
+                        job.progress(10);
+                        // @ts-ignore
+                        this.handleRejectionJob(job.data.code_id, job.data.reason);
+                        job.progress(100);
+                        return true;
                     },
                 }
             },
             actions: {
-                executedeployment: {
-                    name: 'executedeployment',
+                handlerequest: {
+                    name: 'handlerequest',
                     handler: (ctx: Context<HandleDeploymentRequest>) => {
                         this.logger.debug(`Deploy contract on mainnet`);
                         this.createJob(
                             'handle.deployment-mainnet',
                             {
                                 smart_contract: ctx.params.smart_contract,
+                            },
+                            {
+                                removeOnComplete: true,
+                            }
+                        );
+                    }
+                },
+                rejectrequest: {
+                    name: 'rejectrequest',
+                    handler: (ctx: Context<RejectDeploymentParams>) => {
+                        this.logger.debug(`Reject deployment request of contract on mainnet`);
+                        this.createJob(
+                            'reject.deployment-mainnet',
+                            {
+                                code_id: ctx.params.code_id,
+                                reason: ctx.params.reason,
                             },
                             {
                                 removeOnComplete: true,
@@ -90,10 +115,50 @@ export default class HandleDeploymentMainnetService extends Service {
 
         const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
         this.logger.info('Code id:', codeId);
-        
-        /// Send code id through email to user???
 
-        return codeId.toString();
+        const updatedRequest = await this.adapter.updateMany(
+            { euphoria_code_id: smart_contract.code_id! },
+            {
+                mainnet_code_id: codeId,
+                status: MainnetUploadStatus.SUCCESS,
+            }
+        );
+        this.logger.info('Updated request:', updatedRequest);
+
+        const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: smart_contract.code_id } });
+        await this.sendEmail(
+            request.email,
+            'Contract upload on Mainnet successful!',
+            `
+                <p>Your contract source code with code ID ${request.euphoria_code_id} on Euphoria has been uploaded on Mainnet</p>
+                <p>Code ID on Mainnet: ${codeId}</p>
+            `,
+        );
+
+        this.broker.call('v1.handleDeploymentEuphoria.executedeployment', { euphoria_code_id: smart_contract.code_id!, mainnet_code_id: codeId });
+    }
+
+    async handleRejectionJob(code_id: string, reason: string) {
+        const updatedRequest = await this.adapter.updateMany(
+            { euphoria_code_id: code_id },
+            {
+                status: MainnetUploadStatus.REJECTED,
+                reason,
+            }
+        );
+        this.logger.info('Updated request:', updatedRequest);
+
+        const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_id } });
+        await this.sendEmail(
+            request.email,
+            'Request upload contract on Mainnet rejected!',
+            `
+                <p>Your request to upload contract source code with code ID ${request.euphoria_code_id} on Euphoria to Mainnet has been rejected!</p>
+                <p>Reason: ${reason}</p>
+            `,
+        );
+
+        this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_id });
     }
 
     async storeCode(senderAddress: string, wasmCode: Uint8Array, fee: StdFee | 'auto' | number) {
@@ -103,6 +168,27 @@ export default class HandleDeploymentMainnetService extends Service {
             return '';
         }
         return result.codeId;
+    }
+
+    async sendEmail(to: string | undefined, subject: string, html: string) {
+        const transporter = nodemailer.createTransport({
+            host: Config.AURA_HOST,
+            port: Config.AURA_PORT,
+            secureConnection: false,
+            tls: {
+                ciphers: 'SSLv3',
+            },
+            auth: {
+                user: Config.EMAIL_USER,
+                pass: Config.EMAIL_PASSWORD,
+            }
+        });
+        await transporter.sendMail({
+            from: Config.AURA_EMAIL,
+            to,
+            subject,
+            html,
+        });
     }
 
     async _start() {
@@ -115,6 +201,17 @@ export default class HandleDeploymentMainnetService extends Service {
         this.getQueue('handle.deployment-mainnet').on('progress', (job: Job) => {
             this.logger.info(`Job #${job.id} progress is ${job.progress()}%`);
         });
+
+        this.getQueue('reject.deployment-mainnet').on('completed', (job: Job) => {
+            this.logger.info(`Job #${job.id} completed!. Result:`, job.returnvalue);
+        });
+        this.getQueue('reject.deployment-mainnet').on('failed', (job: Job) => {
+            this.logger.error(`Job #${job.id} failed!. Result:`, job.stacktrace);
+        });
+        this.getQueue('reject.deployment-mainnet').on('progress', (job: Job) => {
+            this.logger.info(`Job #${job.id} progress is ${job.progress()}%`);
+        });
+
         return super._start();
     }
 }

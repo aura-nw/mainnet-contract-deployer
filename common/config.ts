@@ -72,9 +72,8 @@ export default class ConfigClass {
 	// public static RATE_LIMIT_WINDOW = +(process.env.RATE_LIMIT_WINDOW || 10000);
 	// public static STRATEGY = process.env.STRATEGY || 'RoundRobin'; // "RoundRobin", "Random", "CpuUsage", "Latency", "Shard"
 	// public static JWT_SECRET = process.env.JWT_SECRET || 'dummy-secret';
-	public static DB_USER: any;
-	public static DB_PRODUCT: any;
 	public static DB_SMART_CONTRACTS: any;
+	public static DB_DEPLOYMENT_REQUESTS: any;
 
 	public constructor() {
 		Object.keys(configObj).forEach((key: string) => {
@@ -91,5 +90,6 @@ export default class ConfigClass {
 		this.DB_USER = genericDbInfo('USER');
 		this.DB_PRODUCT = genericDbInfo('PRODUCT');
 		this.DB_SMART_CONTRACTS = genericDbInfo('SMART_CONTRACTS');
+		this.DB_DEPLOYMENT_REQUESTS = genericDbInfo('DEPLOYMENT_REQUESTS');
 	}
 }

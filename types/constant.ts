@@ -12,4 +12,16 @@ export enum AppConstants {
     INSUFFICIENT_FUNDS = 'insufficient funds',
     ALREADY_SOLD = 'already sold',
     MAX_TOKENS_PER_BATCH_MINT = 20,
-  }
+}
+
+export enum MainnetUploadStatus {
+    SUCCESS = 'Successful',
+    REJECTED = 'Rejected',
+    PENDING = 'Pending',
+}
+
+export enum ContractVerification {
+    EXACT_MATCH = 'EXACT MATCH',
+    SIMILAR_MATCH = 'SIMILAR MATCH',
+    UNVERIFIED = 'UNVERIFIED',
+}

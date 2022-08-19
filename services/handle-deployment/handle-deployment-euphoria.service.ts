@@ -2,8 +2,7 @@ import CallApiMixin from "../../mixins/callApi/call-api.mixin";
 import { Context, Service, ServiceBroker } from "moleculer";
 import { Job } from "bull";
 import { Config } from "../../common";
-import { HandleDeploymentRequest } from "types";
-import { SmartContracts } from "entities";
+import { ContractDeploymentRequest, MainnetUploadStatus, UpdateContractStatusRequest } from "../../types";
 import { dbSmartContractsMixin } from "../../mixins/dbMixins";
 const QueueService = require('moleculer-bull');
 
@@ -33,22 +32,47 @@ export default class HandleDeploymentEuphoriaService extends Service {
                     process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        this.handleJob(job.data.smart_contract);
+                        this.handleJob(job.data.euphoria_code_id, job.data.mainnet_code_id);
+                        job.progress(100);
+                        return true;
+                    },
+                },
+                'reject.deployment-euphoria': {
+                    concurrency: parseInt(Config.CONCURRENCY_HANDLE_DEPLOYMENT, 10),
+                    process(job: Job) {
+                        job.progress(10);
+                        // @ts-ignore
+                        this.handleRejectionJob(job.data.code_id);
                         job.progress(100);
                         return true;
                     },
                 }
             },
             actions: {
-                handlerequest: {
-                    name: 'handlerequest',
-					rest: 'POST /deployment/execute',
-                    handler: (ctx: Context<HandleDeploymentRequest>) => {
+                executedeployment: {
+                    name: 'executedeployment',
+                    handler: (ctx: Context<UpdateContractStatusRequest>) => {
                         this.logger.debug(`Handle contract deployment request`);
                         this.createJob(
                             'handle.deployment-euphoria',
                             {
-                                smart_contract: ctx.params.smart_contract,
+                                euphoria_code_id: ctx.params.euphoria_code_id,
+                                mainnet_code_id: ctx.params.mainnet_code_id,
+                            },
+                            {
+                                removeOnComplete: true,
+                            }
+                        );
+                    }
+                },
+                rejectdeployment: {
+                    name: 'rejectdeployment',
+                    handler: (ctx: Context<ContractDeploymentRequest>) => {
+                        this.logger.debug(`Reject contract deployment request`);
+                        this.createJob(
+                            'reject.deployment-euphoria',
+                            {
+                                code_id: ctx.params.code_id,
                             },
                             {
                                 removeOnComplete: true,
@@ -60,14 +84,14 @@ export default class HandleDeploymentEuphoriaService extends Service {
         })
     }
 
-    async handleJob(smart_contract: SmartContracts) {
-        const codeId: string = await this.broker.call('v1.handleDeploymentMainnet.executedeployment', { smart_contract });
-        if(codeId == '') {
-            this.logger.error(`Failed to store code for Euphoria contract with code ID ${smart_contract.code_id}`);
-            return;
-        }
-        smart_contract.contract_references = codeId;
-        await this.adapter.updateById(smart_contract.id, smart_contract);
+    async handleJob(euphoria_code_id: number, mainnet_code_id: number) {
+        const result = await this.adapter.updateMany({ code_id: euphoria_code_id }, { mainnet_code_id, mainnet_upload_status: MainnetUploadStatus.SUCCESS });
+        this.logger.info('Updated contract status', result);
+    }
+
+    async handleRejectionJob(code_id: number) {
+        const result = await this.adapter.updateMany({ code_id }, { mainnet_upload_status: MainnetUploadStatus.REJECTED });
+        this.logger.info('Updated contract status', result);
     }
 
     async _start() {
@@ -80,6 +104,17 @@ export default class HandleDeploymentEuphoriaService extends Service {
         this.getQueue('handle.deployment-euphoria').on('progress', (job: Job) => {
             this.logger.info(`Job #${job.id} progress is ${job.progress()}%`);
         });
+
+        this.getQueue('reject.deployment-euphoria').on('completed', (job: Job) => {
+            this.logger.info(`Job #${job.id} completed!. Result:`, job.returnvalue);
+        });
+        this.getQueue('reject.deployment-euphoria').on('failed', (job: Job) => {
+            this.logger.error(`Job #${job.id} failed!. Result:`, job.stacktrace);
+        });
+        this.getQueue('reject.deployment-euphoria').on('progress', (job: Job) => {
+            this.logger.info(`Job #${job.id} progress is ${job.progress()}%`);
+        });
+
         return super._start();
     }
 }

@@ -34,7 +34,7 @@ import { Account, SigningCosmWasmClientOptions } from "./interface.utils";
 import { KMSSigner } from "./kms.utils";
 import { Tendermint34Client } from '@cosmjs/tendermint-rpc';
 import { Logger } from "mongodb";
-import { AppConstants, ErrorMessage } from "types";
+import { AppConstants, ErrorMessage } from "../types";
 import { gzip } from "pako";
 import { fromString } from 'long';
 import { sha256 } from '@cosmjs/crypto';

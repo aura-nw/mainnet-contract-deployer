@@ -7,6 +7,7 @@ import moleculer, { Context, Errors } from 'moleculer';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import ApiGateway from 'moleculer-web';
+import jwt, { VerifyErrors } from 'jsonwebtoken';
 import { Service, Method } from '@ourparentcenter/moleculer-decorators-extended';
 import pick from 'lodash/pick';
 import { openAPIMixin } from '../../mixins/openapi/openapi.mixin';
@@ -16,13 +17,14 @@ import {
 } from '../../types';
 import swStats from 'swagger-stats';
 import swaggerSpec = require('../../swagger.json');
+import { reject } from 'lodash';
 const tlBucket = 60000;
 const swMiddleware = swStats.getMiddleware({
 	name: 'swagger-stats',
 	timelineBucketDuration: tlBucket,
 	uriPath: '/dashboard',
 	swaggerSpec: swaggerSpec,
-}); 
+});
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  * @typedef {import('http').IncomingMessage} IncomingRequest Incoming HTTP Request
@@ -30,7 +32,7 @@ const swMiddleware = swStats.getMiddleware({
  */
 @Service({
 	name: 'api',
-	// authToken: Config.API_AUTH_TOKEN,
+	authToken: Config.API_AUTH_TOKEN,
 	mixins: [ApiGateway, openAPIMixin()],
 	// More info about settings: https://moleculer.services/docs/0.14/moleculer-web.html
 	settings: {
@@ -101,7 +103,7 @@ const swMiddleware = swStats.getMiddleware({
 				mergeParams: true,
 
 				// Enable authentication. Implement the logic into `authenticate` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authentication
-				authentication: false,
+				authentication: true,
 
 				// Enable authorization. Implement the logic into `authorize` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authorization
 				authorization: false,
@@ -187,7 +189,7 @@ const swMiddleware = swStats.getMiddleware({
 			// Options to `server-static` module
 			options: {},
 		},
-	},
+	}
 })
 export default class ApiService extends moleculer.Service {
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -210,4 +212,91 @@ export default class ApiService extends moleculer.Service {
 		}
 		this.logResponse(req, res, err ? err.ctx : null);
 	}
+
+	// /**
+	//  * Reject response for the authentication or authorization request.
+	//  *
+	//  * @param {Context} ctx
+	//  * @param {Errors.MoleculerError} error
+	//  * @returns {Promise}
+	//  */
+	//  @Method
+	//  async rejectAuth(
+	// 	 ctx: Context<Record<string, unknown>, Object>,
+	// 	 error: Errors.MoleculerError,
+	//  ): Promise<unknown> {
+	// 	 if (ctx.meta.user) {
+	// 		 const context = pick(
+	// 			 ctx,
+	// 			 'nodeID',
+	// 			 'id',
+	// 			 'event',
+	// 			 'eventName',
+	// 			 'eventType',
+	// 			 'eventGroups',
+	// 			 'parentID',
+	// 			 'requestID',
+	// 			 'caller',
+	// 			 'params',
+	// 			 'meta',
+	// 			 'locals',
+	// 		 );
+	// 		 const action = pick(ctx.action, 'rawName', 'name', 'params', 'rest');
+	// 		 const logInfo = {
+	// 			 action: 'AUTH_FAILURE',
+	// 			 details: {
+	// 				 error,
+	// 				 context,
+	// 				 action,
+	// 				 meta: ctx.meta,
+	// 			 },
+	// 		 };
+	// 		 this.logger.error(logInfo);
+	// 	 }
+	// 	 return Promise.reject(error);
+	//  }
+
+	// /**
+	//  * Authenticate the request. It check the `Authorization` token value in the request header.
+	//  * Check the token value & resolve the user by the token.
+	//  * The resolved user will be available in `ctx.meta.user`
+	//  *
+	//  * PLEASE NOTE, IT'S JUST AN EXAMPLE IMPLEMENTATION. DO NOT USE IN PRODUCTION!
+	//  *
+	//  * @param {Context} ctx
+	//  * @param {any} route
+	//  * @param {RequestMessage} req
+	//  * @returns {Promise}
+	//  */
+	// @Method
+	// async authenticate(
+	// 	ctx: Context<Record<string, unknown>, Object>,
+	// 	route: any,
+	// 	req: RequestMessage,
+	// ): Promise<any> {
+	// 	const auth = req.headers.authorization;
+
+	// 	if (auth) {
+	// 		const type = auth.split(' ')[0];
+	// 		let token: string | undefined;
+	// 		if (type === 'Token' || type === 'Bearer') {
+	// 			token = auth.split(' ')[1];
+	// 		}
+
+	// 		if (token) {
+	// 			jwt.verify(token, Config.JWT_SECRET, (err: any, decoded: any) => {
+	// 				if (err) {
+	// 					reject(err);
+	// 				}
+	// 				resolve(decoded);
+	// 			});
+	// 		}
+	// 		this.logger.error(
+	// 			new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_INVALID_TOKEN, null),
+	// 		);
+	// 	}
+	// 	this.logger.error(
+	// 		new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_NO_TOKEN, null),
+	// 	);
+	// }
 }

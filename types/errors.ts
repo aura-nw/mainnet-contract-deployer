@@ -12,6 +12,7 @@ export enum ErrorMessage {
 	CONTRACT_NOT_FOUND = 'This contract does not exist',
 	INSUFFICIENT_FUNDS = 'Insufficient funds',
 	SIMULATE_TX_FAIL = 'Simulate transaction failed',
+	REQUEST_SUCCESSFUL = 'Contract(s) deployment request successful',
 }
 
 export const ErrorCode = {

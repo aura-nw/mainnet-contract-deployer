@@ -8,6 +8,29 @@
     "basePath": "/api",
     "swagger": "2.0",
     "paths": {
+        "/v1/deployment/all-requests": {
+            "get": {
+                "tags": [
+                    "Contract Deployment"
+                ],
+                "summary": "Show list of all requests",
+                "description": "Show list of all requests",
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List requests result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
         "/v1/deployment/request": {
             "post": {
                 "tags": [
@@ -28,10 +51,78 @@
                         "schema": {
                             "type": "object",
                             "properties": {
-                                "code_id": {
+                                "code_ids": {
                                     "required": true,
-                                    "type": "number",
-                                    "description": "Code id of contract"
+                                    "type": "array",
+                                    "items": {
+                                        "type": "number"
+                                    },
+                                    "description": "Code ids of all contracts in the group"
+                                },
+                                "name": {
+                                    "required": true,
+                                    "type": "string",
+                                    "description": "Name of subscriber"
+                                },
+                                "email": {
+                                    "required": true,
+                                    "type": "string",
+                                    "description": "Email of subscriber"
+                                },
+                                "contract_description": {
+                                    "required": true,
+                                    "type": "string",
+                                    "description": "Description of contract(s)"
+                                },
+                                "project_name": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Project name"
+                                },
+                                "official_project_website": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project website"
+                                },
+                                "official_project_email": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project email"
+                                },
+                                "project_sector": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Sector of the contract in the project"
+                                },
+                                "whitepaper": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project whitepaper"
+                                },
+                                "github": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project github"
+                                },
+                                "telegram": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project telegram"
+                                },
+                                "discord": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project discord"
+                                },
+                                "facebook": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project facebook"
+                                },
+                                "twitter": {
+                                    "required": false,
+                                    "type": "string",
+                                    "description": "Official project twitter"
                                 }
                             }
                         }
@@ -70,7 +161,7 @@
                                 "code_id": {
                                     "required": true,
                                     "type": "number",
-                                    "description": "Code id of contract"
+                                    "description": "Code id of the requested contract"
                                 }
                             }
                         }
@@ -79,6 +170,50 @@
                 "responses": {
                     "200": {
                         "description": "Deployment result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
+        "/v1/deployment/reject": {
+            "post": {
+                "tags": [
+                    "Contract Deployment"
+                ],
+                "summary": "Admin reject the requested contract on mainnet",
+                "description": "Admin reject the requested contract on mainnet",
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "params",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code_id": {
+                                    "required": true,
+                                    "type": "number",
+                                    "description": "Code id of the requested contract"
+                                },
+                                "reason": {
+                                    "required": true,
+                                    "type": "string",
+                                    "description": "Reason for rejection"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reject result"
                     },
                     "422": {
                         "description": "Missing parameters"
