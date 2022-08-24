@@ -1,6 +1,6 @@
 import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extended";
 import { Context } from "moleculer";
-import { ContractDeploymentRequest, ContractVerification, ErrorCode, ErrorMessage, HandleDeploymentRequest, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams, RequestDeploymentParams, ResponseDto } from "../../types";
+import { ContractDeploymentRequest, ContractVerification, DeploymentRequest, ErrorCode, ErrorMessage, HandleDeploymentRequest, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams, RequestDeploymentParams, ResponseDto } from "../../types";
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -41,7 +41,7 @@ export default class DeploymentService extends MoleculerDBService<
 	 *        422:
 	 *          description: Missing parameters
 	 */
-	 @Get('/all-requests', {
+	@Get('/all-requests', {
 		name: 'getAllRequests',
 		/**
 		 * Service guard services allowed to connect
@@ -181,6 +181,8 @@ export default class DeploymentService extends MoleculerDBService<
 		let discord = ctx.params.discord;
 		let facebook = ctx.params.facebook;
 		let twitter = ctx.params.twitter;
+		let currentRequestId: number = await this.broker.call('v1.deployment-requests.getLatestRequestId');
+		let request_id = currentRequestId + 1;
 		ctx.params.code_ids.map(async (code_id) => {
 			let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id });
 
@@ -215,6 +217,7 @@ export default class DeploymentService extends MoleculerDBService<
 					query_msg_schema,
 					execute_msg_schema,
 					compiler_version,
+					request_id
 				});
 			}
 		});
@@ -241,8 +244,8 @@ export default class DeploymentService extends MoleculerDBService<
 	 *    post:
 	 *      tags:
 	 *      - "Contract Deployment"
-	 *      summary:  Admin deploy the requested contract on mainnet
-	 *      description: Admin deploy the requested contract on mainnet
+	 *      summary:  Admin deploy the requested contract(s) on mainnet
+	 *      description: Admin deploy the requested contract(s) on mainnet
 	 *      produces:
 	 *        - application/json
 	 *      consumes:
@@ -253,10 +256,12 @@ export default class DeploymentService extends MoleculerDBService<
 	 *          schema:
 	 *            type: object
 	 *            properties:
-	 *              code_id:
+	 *              code_ids:
 	 *                required: true
-	 *                type: number
-	 *                description: "Code id of the requested contract"
+	 *                type: array
+	 *                items:
+	 *                  type: number
+	 *                description: "Code ids of all contracts in the group"
 	 *      responses:
 	 *        200:
 	 *          description: Deployment result
@@ -270,28 +275,33 @@ export default class DeploymentService extends MoleculerDBService<
 		 */
 		restricted: ['api'],
 		params: {
-			code_id: 'number',
+			code_ids: 'number[]'
 		},
 	})
-	async deployContractOnMainnet(ctx: Context<ContractDeploymentRequest>) {
-		let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id: ctx.params.code_id });
+	async deployContractOnMainnet(ctx: Context<DeploymentRequest>) {
+		let notFoundContracts: number[] = [];
+		ctx.params.code_ids.map(async (code_id) => {
+			let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id });
 
-		if (!result) {
+			if (!result) {
+				notFoundContracts.push(code_id);
+			} else {
+				this.broker.call('v1.handleDeploymentMainnet.handlerequest', { smart_contract: result });
+			}
+		});
+		if (notFoundContracts.length > 0) {
 			const response: ResponseDto = {
 				code: ErrorCode.CONTRACT_NOT_FOUND,
 				message: ErrorMessage.CONTRACT_NOT_FOUND,
-				data: null
+				data: { contracts: notFoundContracts }
 			};
 			return response;
 		}
-
-		this.broker.call('v1.handleDeploymentMainnet.handlerequest', { smart_contract: result });
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,
 			data: null
 		};
-
 		return response;
 	}
 
@@ -314,10 +324,12 @@ export default class DeploymentService extends MoleculerDBService<
 	 *          schema:
 	 *            type: object
 	 *            properties:
-	 *              code_id:
+	 *              code_ids:
 	 *                required: true
-	 *                type: number
-	 *                description: "Code id of the requested contract"
+	 *                type: array
+	 *                items:
+	 *                  type: number
+	 *                description: "Code ids of all contracts in the group"
 	 *              reason:
 	 *                required: true
 	 *                type: string
@@ -328,30 +340,19 @@ export default class DeploymentService extends MoleculerDBService<
 	 *        422:
 	 *          description: Missing parameters
 	 */
-	 @Post('/reject', {
+	@Post('/reject', {
 		name: 'rejectContractDeployment',
 		/**
 		 * Service guard services allowed to connect
 		 */
 		restricted: ['api'],
 		params: {
-			code_id: 'number',
+			code_ids: 'number[]',
 			reason: 'string',
 		},
 	})
 	async rejectContractDeployment(ctx: Context<RejectDeploymentParams>) {
-		let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id: ctx.params.code_id });
-
-		if (!result) {
-			const response: ResponseDto = {
-				code: ErrorCode.CONTRACT_NOT_FOUND,
-				message: ErrorMessage.CONTRACT_NOT_FOUND,
-				data: null
-			};
-			return response;
-		}
-
-		this.broker.call('v1.handleDeploymentMainnet.rejectrequest', { code_id: ctx.params.code_id, reason: ctx.params.reason });
+		this.broker.call('v1.handleDeploymentMainnet.rejectrequest', { code_ids: ctx.params.code_ids, reason: ctx.params.reason });
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,

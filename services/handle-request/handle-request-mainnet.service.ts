@@ -53,6 +53,7 @@ export default class HandleRequestMainnetService extends Service {
                             job.data.query_msg_schema,
                             job.data.execute_msg_schema,
                             job.data.compiler_version,
+                            job.data.request_id
                         );
                         job.progress(100);
                         return true;
@@ -88,6 +89,7 @@ export default class HandleRequestMainnetService extends Service {
                                 query_msg_schema: ctx.params.query_msg_schema,
                                 execute_msg_schema: ctx.params.execute_msg_schema,
                                 compiler_version: ctx.params.compiler_version,
+                                request_id: ctx.params.request_id
                             },
                             {
                                 removeOnComplete: true,
@@ -120,6 +122,7 @@ export default class HandleRequestMainnetService extends Service {
         query_msg_schema: string,
         execute_msg_schema: string,
         compiler_version: string,
+        request_id: number
     ) {
         const deploymentRequest = {
             name,
@@ -143,6 +146,7 @@ export default class HandleRequestMainnetService extends Service {
             execute_msg_schema,
             compiler_version,
             status: MainnetUploadStatus.PENDING,
+            request_id
         };
         const result = await this.adapter.insert(deploymentRequest);
         this.logger.info('Request inserted into database', result);

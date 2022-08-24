@@ -2,7 +2,7 @@ import CallApiMixin from "../../mixins/callApi/call-api.mixin";
 import { Context, Service, ServiceBroker } from "moleculer";
 import { Job } from "bull";
 import { Config } from "../../common";
-import { ContractDeploymentRequest, MainnetUploadStatus, UpdateContractStatusRequest } from "../../types";
+import { ContractDeploymentRequest, DeploymentRequest, MainnetUploadStatus, UpdateContractStatusRequest } from "../../types";
 import { dbSmartContractsMixin } from "../../mixins/dbMixins";
 const QueueService = require('moleculer-bull');
 
@@ -42,7 +42,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
                     process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        this.handleRejectionJob(job.data.code_id);
+                        this.handleRejectionJob(job.data.code_ids);
                         job.progress(100);
                         return true;
                     },
@@ -67,12 +67,12 @@ export default class HandleDeploymentEuphoriaService extends Service {
                 },
                 rejectdeployment: {
                     name: 'rejectdeployment',
-                    handler: (ctx: Context<ContractDeploymentRequest>) => {
+                    handler: (ctx: Context<DeploymentRequest>) => {
                         this.logger.debug(`Reject contract deployment request`);
                         this.createJob(
                             'reject.deployment-euphoria',
                             {
-                                code_id: ctx.params.code_id,
+                                code_ids: ctx.params.code_ids,
                             },
                             {
                                 removeOnComplete: true,
@@ -89,8 +89,8 @@ export default class HandleDeploymentEuphoriaService extends Service {
         this.logger.info('Updated contract status', result);
     }
 
-    async handleRejectionJob(code_id: number) {
-        const result = await this.adapter.updateMany({ code_id }, { mainnet_upload_status: MainnetUploadStatus.REJECTED });
+    async handleRejectionJob(code_ids: number[]) {
+        const result = await this.adapter.updateMany({ code_id: [...code_ids] }, { mainnet_upload_status: MainnetUploadStatus.REJECTED });
         this.logger.info('Updated contract status', result);
     }
 

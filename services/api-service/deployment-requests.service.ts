@@ -33,4 +33,16 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 		const result = await this.adapter.find({});
 		return result;
 	}
+
+	@Action({
+		name: 'getLatestRequestId',
+	})
+	async getLatestRequestId() {
+		const result: any = await this.adapter.find({
+			limit: 1,
+			// @ts-ignore
+			sort: '-request_id',
+		});
+		return result[0].request_id;
+	}
 }

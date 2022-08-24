@@ -17,6 +17,10 @@ export interface RequestDeploymentParams {
     twitter: string;
 }
 
+export interface DeploymentRequest {
+    code_ids: number[];
+}
+
 export interface ContractDeploymentRequest {
     code_id: number;
 }
@@ -46,6 +50,7 @@ export interface HandleRequestParams {
     query_msg_schema: string;
     execute_msg_schema: string;
     compiler_version: string;
+    request_id: number;
 }
 
 export interface UpdateContractStatusRequest {
@@ -54,6 +59,6 @@ export interface UpdateContractStatusRequest {
 }
 
 export interface RejectDeploymentParams {
-    code_id: number;
+    code_ids: number[];
     reason: string;
 }

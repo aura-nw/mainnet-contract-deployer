@@ -49,7 +49,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        this.handleRejectionJob(job.data.code_id, job.data.reason);
+                        this.handleRejectionJob(job.data.code_ids, job.data.reason);
                         job.progress(100);
                         return true;
                     },
@@ -78,7 +78,7 @@ export default class HandleDeploymentMainnetService extends Service {
                         this.createJob(
                             'reject.deployment-mainnet',
                             {
-                                code_id: ctx.params.code_id,
+                                code_ids: ctx.params.code_ids,
                                 reason: ctx.params.reason,
                             },
                             {
@@ -138,9 +138,9 @@ export default class HandleDeploymentMainnetService extends Service {
         this.broker.call('v1.handleDeploymentEuphoria.executedeployment', { euphoria_code_id: smart_contract.code_id!, mainnet_code_id: codeId });
     }
 
-    async handleRejectionJob(code_id: string, reason: string) {
+    async handleRejectionJob(code_ids: number[], reason: string) {
         const updatedRequest = await this.adapter.updateMany(
-            { euphoria_code_id: code_id },
+            { euphoria_code_id: [...code_ids] },
             {
                 status: MainnetUploadStatus.REJECTED,
                 reason,
@@ -148,17 +148,17 @@ export default class HandleDeploymentMainnetService extends Service {
         );
         this.logger.info('Updated request:', updatedRequest);
 
-        const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_id } });
+        const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_ids[0] } });
         await this.sendEmail(
             request.email,
             'Request upload contract on Mainnet rejected!',
             `
-                <p>Your request to upload contract source code with code ID ${request.euphoria_code_id} on Euphoria to Mainnet has been rejected!</p>
+                <p>Your request to upload contract source code with code ID(s) ${code_ids} on Euphoria to Mainnet has been rejected!</p>
                 <p>Reason: ${reason}</p>
             `,
         );
 
-        this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_id });
+        this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids });
     }
 
     async storeCode(senderAddress: string, wasmCode: Uint8Array, fee: StdFee | 'auto' | number) {

@@ -43,6 +43,7 @@ const dbBaseMixin = new DbBaseMixin({
             compiler_version: String,
             status: String,
             reason: String,
+            request_id: Number,
         }
     },
 });
