@@ -13,6 +13,11 @@ export enum ErrorMessage {
 	INSUFFICIENT_FUNDS = 'Insufficient funds',
 	SIMULATE_TX_FAIL = 'Simulate transaction failed',
 	REQUEST_SUCCESSFUL = 'Contract(s) deployment request successful',
+	INVALID_EMAIL = 'Invalid email',
+	INVALID_PASSWORD = 'Invalid password',
+	INVALID_CREDENTIALS = 'Invalid email or password, please try again',
+	NEW_PASS_REQUIRED = 'User must change password in first login time',
+	LOGIN_SUCCESSFUL = 'Login successful',
 }
 
 export const ErrorCode = {
@@ -26,4 +31,8 @@ export const ErrorCode = {
 	CONTRACT_NOT_FOUND: 'E001',
 	INSUFFICIENT_FUNDS: 'E002',
 	SIMULATE_TX_FAIL: 'E003',
+	INVALID_EMAIL: 'E004',
+	INVALID_PASSWORD: 'E005',
+	NEW_PASS_REQUIRED: 'E006',
+	INVALID_CREDENTIALS: 'E007',
 };

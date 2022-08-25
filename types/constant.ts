@@ -25,3 +25,8 @@ export enum ContractVerification {
     SIMILAR_MATCH = 'SIMILAR MATCH',
     UNVERIFIED = 'UNVERIFIED',
 }
+
+export enum AppConstants {
+    NOT_AUTHORIZED_EXEPTION = 'NotAuthorizedException',
+    NEW_PASS_REQUIRED = 'callback.newPasswordRequired is not a function',
+}
