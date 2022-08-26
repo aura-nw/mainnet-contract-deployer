@@ -61,8 +61,7 @@ export default class HandleRequestEuphoriaService extends Service {
     }
 
     async handleJob(code_id: number) {
-        const result = await this.adapter.updateMany({ code_id }, { mainnet_upload_status: MainnetUploadStatus.PENDING });
-        this.logger.info('Updated smart contracts:', result);
+        await this.adapter.updateMany({ code_id }, { mainnet_upload_status: MainnetUploadStatus.PENDING });
     }
 
     async _start() {
