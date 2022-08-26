@@ -1,6 +1,6 @@
 import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extended";
 import { Context } from "moleculer";
-import { ErrorCode, ErrorMessage, MoleculerDBService, RequestDeploymentParams, ResponseDto } from "../../types";
+import { ErrorCode, ErrorMessage, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto } from "../../types";
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -123,6 +123,8 @@ export default class RequestService extends MoleculerDBService<
 	})
 	async requestContractDeployment(ctx: Context<RequestDeploymentParams>) {
 		let notFoundContracts: number[] = [];
+		let deployedContracts: number[] = [];
+		let pendingContracts: number[] = [];
 		let name = ctx.params.name;
 		let email = ctx.params.email;
 		let contract_description = ctx.params.contract_description;
@@ -138,11 +140,15 @@ export default class RequestService extends MoleculerDBService<
 		let twitter = ctx.params.twitter;
 		let currentRequestId: number = await this.broker.call('v1.deployment-requests.getLatestRequestId');
 		let request_id = currentRequestId + 1;
-		ctx.params.code_ids.map(async (code_id) => {
+		await Promise.all(ctx.params.code_ids.map(async (code_id) => {
 			let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id });
 
 			if (!result) {
 				notFoundContracts.push(code_id);
+			} else if (result.mainnet_upload_status === MainnetUploadStatus.SUCCESS) {
+				deployedContracts.push(code_id);
+			} else if (result.mainnet_upload_status === MainnetUploadStatus.PENDING) {
+				pendingContracts.push(code_id);
 			} else {
 				let contract_hash = result.contract_hash;
 				let url = result.url;
@@ -150,6 +156,7 @@ export default class RequestService extends MoleculerDBService<
 				let query_msg_schema = result.query_msg_schema;
 				let execute_msg_schema = result.execute_msg_schema;
 				let compiler_version = result.compiler_version;
+				let s3_location = result.s3_location;
 				this.broker.call('v1.handleRequestEuphoria.updatestatus', { code_id });
 				this.broker.call('v1.handleRequestMainnet.updatestatus', {
 					code_id,
@@ -172,15 +179,32 @@ export default class RequestService extends MoleculerDBService<
 					query_msg_schema,
 					execute_msg_schema,
 					compiler_version,
+					s3_location,
 					request_id
 				});
 			}
-		});
+		}));
 		if (notFoundContracts.length > 0) {
 			const response: ResponseDto = {
 				code: ErrorCode.CONTRACT_NOT_FOUND,
 				message: ErrorMessage.CONTRACT_NOT_FOUND,
 				data: { contracts: notFoundContracts }
+			};
+			return response;
+		}
+		if (deployedContracts.length > 0) {
+			const response: ResponseDto = {
+				code: ErrorCode.CONTRACT_ALREADY_UPLOADED,
+				message: ErrorMessage.CONTRACT_ALREADY_UPLOADED,
+				data: { contracts: deployedContracts },
+			};
+			return response;
+		}
+		if (pendingContracts.length > 0) {
+			const response: ResponseDto = {
+				code: ErrorCode.CONTRACT_ALREADY_REQUESTED,
+				message: ErrorMessage.CONTRACT_ALREADY_REQUESTED,
+				data: { contracts: pendingContracts },
 			};
 			return response;
 		}

@@ -99,24 +99,10 @@ export default class DeploymentService extends MoleculerDBService<
 		},
 	})
 	async deployContractOnMainnet(ctx: Context<DeploymentRequest>) {
-		let notFoundContracts: number[] = [];
-		ctx.params.code_ids.map(async (code_id) => {
+		await ctx.params.code_ids.forEach(async (code_id) => {
 			let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id });
-
-			if (!result) {
-				notFoundContracts.push(code_id);
-			} else {
-				this.broker.call('v1.handleDeploymentMainnet.handlerequest', { smart_contract: result });
-			}
+			await this.broker.call('v1.handleDeploymentMainnet.handlerequest', { smart_contract: result });
 		});
-		if (notFoundContracts.length > 0) {
-			const response: ResponseDto = {
-				code: ErrorCode.CONTRACT_NOT_FOUND,
-				message: ErrorMessage.CONTRACT_NOT_FOUND,
-				data: { contracts: notFoundContracts }
-			};
-			return response;
-		}
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,
