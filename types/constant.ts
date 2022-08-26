@@ -4,7 +4,7 @@ export enum TransactionMessage {
 }
 
 export enum AppConstants {
-    DEFAULT_GAS_PRICE = '0.0002utaura',
+    DEFAULT_GAS_PRICE = '0.002utaura',
     AUTO = 'auto',
     DEFAULT_AMOUNT_FUND = 233444,
     DEFAULT_DENOM_FUND = 'utaura',
