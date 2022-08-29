@@ -61,7 +61,7 @@ export default class DeploymentService extends MoleculerDBService<
 	/**
 	 *  @swagger
 	 *
-	 *  /admin/v1/deployment/execute:
+	 *  /admin/v1/deployment/approve:
 	 *    post:
 	 *      tags:
 	 *        - "Contract Deployment"
@@ -88,7 +88,7 @@ export default class DeploymentService extends MoleculerDBService<
 	 *        422:
 	 *          description: Missing parameters
 	 */
-	@Post('/execute', {
+	@Post('/approve', {
 		name: 'deployContractOnMainnet',
 		/**
 		 * Service guard services allowed to connect
