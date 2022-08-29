@@ -50,6 +50,7 @@ export interface HandleRequestParams {
     query_msg_schema: string;
     execute_msg_schema: string;
     compiler_version: string;
+    s3_location: string;
     request_id: number;
 }
 

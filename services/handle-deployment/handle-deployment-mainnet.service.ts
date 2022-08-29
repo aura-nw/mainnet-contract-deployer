@@ -36,20 +36,20 @@ export default class HandleDeploymentMainnetService extends Service {
             queues: {
                 'handle.deployment-mainnet': {
                     concurrency: parseInt(Config.CONCURRENCY_HANDLE_DEPLOYMENT, 10),
-                    process(job: Job) {
+                    async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        this.handleJob(job.data.smart_contract);
+                        await this.handleJob(job.data.smart_contract);
                         job.progress(100);
                         return true;
                     },
                 },
                 'reject.deployment-mainnet': {
                     concurrency: parseInt(Config.CONCURRENCY_HANDLE_DEPLOYMENT, 10),
-                    process(job: Job) {
+                    async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        this.handleRejectionJob(job.data.code_ids, job.data.reason);
+                        await this.handleRejectionJob(job.data.code_ids, job.data.reason);
                         job.progress(100);
                         return true;
                     },
@@ -107,7 +107,8 @@ export default class HandleDeploymentMainnetService extends Service {
         // Connect network
         this.network = await Network.connectWithSigner(
             // Config.MAINNET_RPC,
-            Config.DEV_RPC,
+            Config.SERENITY_RPC,
+            // Config.DEV_RPC,
             account,
             signer,
             { gasPrice: this.defaultGasPrice }
@@ -116,14 +117,13 @@ export default class HandleDeploymentMainnetService extends Service {
         const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
         this.logger.info('Code id:', codeId);
 
-        const updatedRequest = await this.adapter.updateMany(
+        await this.adapter.updateMany(
             { euphoria_code_id: smart_contract.code_id! },
             {
                 mainnet_code_id: codeId,
                 status: MainnetUploadStatus.SUCCESS,
             }
         );
-        this.logger.info('Updated request:', updatedRequest);
 
         const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: smart_contract.code_id } });
         await this.sendEmail(
@@ -139,14 +139,13 @@ export default class HandleDeploymentMainnetService extends Service {
     }
 
     async handleRejectionJob(code_ids: number[], reason: string) {
-        const updatedRequest = await this.adapter.updateMany(
+        await this.adapter.updateMany(
             { euphoria_code_id: [...code_ids] },
             {
                 status: MainnetUploadStatus.REJECTED,
                 reason,
             }
         );
-        this.logger.info('Updated request:', updatedRequest);
 
         const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_ids[0] } });
         await this.sendEmail(

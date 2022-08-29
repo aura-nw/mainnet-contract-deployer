@@ -52,7 +52,14 @@ export const openAPIMixin = (mixinOptions?: any) => {
 			 */
 			generateOpenAPISchema(): any {
 				try {
+					let url = Config.SWAGGER_HOST;
+					if (Config.SWAGGER_PORT) {
+						url += `:${Config.BASE_PORT}`;
+					}
+					url += `${Config.SWAGGER_BASEPATH}`;
+
 					const swaggerDefinition = {
+						openapi: '3.0.0',
 						info: {
 							title: `${pkg.name} API Documentation`, // Title of the documentation
 							version: pkg.version, // Version of the app
@@ -60,8 +67,23 @@ export const openAPIMixin = (mixinOptions?: any) => {
 								// eslint-disable-next-line max-len
 								'Moleculer JS Microservice Boilerplate with Typescript, TypeORM, CLI, Service Clients, Swagger, Jest, Docker, Eslint support and everything you will ever need to deploy rock solid projects..', // Short description of the app
 						},
-						host: `${Config.SWAGGER_HOST}:${Config.SWAGGER_PORT}`, // The host or url of the app
-						basePath: `${Config.SWAGGER_BASEPATH}`, // The basepath of your endpoint
+						// host: `${Config.SWAGGER_HOST}:${Config.SWAGGER_PORT}`, // The host or url of the app
+						// basePath: `${Config.SWAGGER_BASEPATH}`, // The basepath of your endpoint
+						servers: [
+							{
+								url,
+							},
+						],
+						components: {
+							securitySchemes: {
+								bearerAuth: {
+									type: 'http',
+									scheme: 'bearer',
+									bearerFormat: 'JWT',
+									in: 'header',
+								},
+							}
+						},
 					};
 					// Options for the swagger docs
 					const options = {

@@ -4,7 +4,7 @@ export enum TransactionMessage {
 }
 
 export enum AppConstants {
-    DEFAULT_GAS_PRICE = '0.0002utaura',
+    DEFAULT_GAS_PRICE = '0.002utaura',
     AUTO = 'auto',
     DEFAULT_AMOUNT_FUND = 233444,
     DEFAULT_DENOM_FUND = 'utaura',
@@ -24,4 +24,9 @@ export enum ContractVerification {
     EXACT_MATCH = 'EXACT MATCH',
     SIMILAR_MATCH = 'SIMILAR MATCH',
     UNVERIFIED = 'UNVERIFIED',
+}
+
+export enum AppConstants {
+    NOT_AUTHORIZED_EXEPTION = 'NotAuthorizedException',
+    NEW_PASS_REQUIRED = 'callback.newPasswordRequired is not a function',
 }

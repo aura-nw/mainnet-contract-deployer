@@ -43,6 +43,7 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 			// @ts-ignore
 			sort: '-request_id',
 		});
+		if (result.length === 0) return 0;
 		return result[0].request_id;
 	}
 }

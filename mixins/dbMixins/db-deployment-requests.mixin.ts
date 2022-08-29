@@ -41,6 +41,7 @@ const dbBaseMixin = new DbBaseMixin({
             query_msg_schema: String,
             execute_msg_schema: String,
             compiler_version: String,
+            s3_location: String,
             status: String,
             reason: String,
             request_id: Number,

@@ -5,3 +5,4 @@ export * from './errors';
 export * from './smart-contracts';
 export * from './response-api';
 export * from './constant';
+export * from './auth';
