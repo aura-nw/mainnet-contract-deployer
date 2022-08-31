@@ -1,4 +1,4 @@
-import { SmartContracts } from "entities";
+import { DeploymentRequests, SmartContracts } from "entities";
 
 export interface RequestDeploymentParams {
     code_ids: number[];
@@ -17,16 +17,52 @@ export interface RequestDeploymentParams {
     twitter: string;
 }
 
+export interface UpdateRequestDeploymentParams {
+    request_id: number;
+    name: string;
+    email: string;
+    contract_description: string;
+    project_name: string;
+    official_project_website: string;
+    official_project_email: string;
+    project_sector: string;
+    whitepaper: string;
+    github: string;
+    telegram: string;
+    discord: string;
+    facebook: string;
+    twitter: string;
+}
+
+export interface UpdateRequestParams {
+    request_id: number;
+    name: string;
+    email: string;
+    contract_description: string;
+    project_name: string;
+    official_project_website: string;
+    official_project_email: string;
+    project_sector: string;
+    whitepaper: string;
+    github: string;
+    telegram: string;
+    discord: string;
+    facebook: string;
+    twitter: string;
+    status: string;
+    reason: string;
+}
+
 export interface DeploymentRequest {
+    request_id: number;
+}
+
+export interface DeploymentParams {
     code_ids: number[];
 }
 
 export interface ContractDeploymentRequest {
     code_id: number;
-}
-
-export interface HandleDeploymentRequest {
-    smart_contract: SmartContracts;
 }
 
 export interface HandleRequestParams {
@@ -59,7 +95,16 @@ export interface UpdateContractStatusRequest {
     mainnet_code_id: number;
 }
 
+export interface RejectDeploymentRequest {
+    request_id: number;
+    reason: string;
+}
+
 export interface RejectDeploymentParams {
     code_ids: number[];
     reason: string;
+}
+
+export interface GetRequestsParams {
+    request_id: number;
 }

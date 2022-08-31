@@ -3,7 +3,7 @@
 'use strict';
 import { Service, Action } from '@ourparentcenter/moleculer-decorators-extended';
 import { dbSmartContractsMixin } from '../../mixins/dbMixins';
-import { ContractDeploymentRequest, ContractVerification, MainnetUploadStatus, MoleculerDBService } from '../../types';
+import { ContractDeploymentRequest, ContractVerification, DeploymentRequest, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams } from '../../types';
 import { SmartContracts } from 'entities';
 import { Context } from 'moleculer';
 
@@ -34,6 +34,19 @@ export default class SmartContractsService extends MoleculerDBService<
 		const result: any = await this.adapter.findOne({
             where: {
                 code_id: ctx.params.code_id,
+                contract_verification: [ContractVerification.EXACT_MATCH, ContractVerification.SIMILAR_MATCH]
+            }
+        });
+		return result;
+	}
+
+	@Action({
+		name: 'getListContracts',
+	})
+	async getListContracts(ctx: Context<RejectDeploymentParams>) {
+		const result: any = await this.adapter.find({
+            query: {
+                code_id: ctx.params.code_ids,
                 contract_verification: [ContractVerification.EXACT_MATCH, ContractVerification.SIMILAR_MATCH]
             }
         });

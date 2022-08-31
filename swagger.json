@@ -83,7 +83,7 @@
                 }
             }
         },
-        "/admin/v1/deployment/execute": {
+        "/admin/v1/deployment/approve": {
             "post": {
                 "tags": [
                     "Contract Deployment"
@@ -101,15 +101,12 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "code_ids"
+                                    "request_id"
                                 ],
                                 "properties": {
-                                    "code_ids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "number"
-                                        },
-                                        "description": "Code ids of all contracts in the group"
+                                    "request_id": {
+                                        "type": "number",
+                                        "description": "Id of the request"
                                     }
                                 }
                             }
@@ -144,16 +141,13 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "code_ids",
+                                    "request_id",
                                     "reason"
                                 ],
                                 "properties": {
-                                    "code_ids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "number"
-                                        },
-                                        "description": "Code ids of all contracts in the group"
+                                    "request_id": {
+                                        "type": "number",
+                                        "description": "Id of the request"
                                     },
                                     "reason": {
                                         "type": "string",
@@ -199,6 +193,93 @@
                                             "type": "number"
                                         },
                                         "description": "Code ids of all contracts in the group"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "Name of subscriber"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "description": "Email of subscriber"
+                                    },
+                                    "contract_description": {
+                                        "type": "string",
+                                        "description": "Description of contract(s)"
+                                    },
+                                    "project_name": {
+                                        "type": "string",
+                                        "description": "Project name"
+                                    },
+                                    "official_project_website": {
+                                        "type": "string",
+                                        "description": "Official project website"
+                                    },
+                                    "official_project_email": {
+                                        "type": "string",
+                                        "description": "Official project email"
+                                    },
+                                    "project_sector": {
+                                        "type": "string",
+                                        "description": "Sector of the contract in the project"
+                                    },
+                                    "whitepaper": {
+                                        "type": "string",
+                                        "description": "Official project whitepaper"
+                                    },
+                                    "github": {
+                                        "type": "string",
+                                        "description": "Official project github"
+                                    },
+                                    "telegram": {
+                                        "type": "string",
+                                        "description": "Official project telegram"
+                                    },
+                                    "discord": {
+                                        "type": "string",
+                                        "description": "Official project discord"
+                                    },
+                                    "facebook": {
+                                        "type": "string",
+                                        "description": "Official project facebook"
+                                    },
+                                    "twitter": {
+                                        "type": "string",
+                                        "description": "Official project twitter"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Request result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
+        "/api/v1/request/update": {
+            "post": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Update a request to deploy a contract on mainnet",
+                "description": "Update a request to deploy a contract on mainnet",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "request_id"
+                                ],
+                                "properties": {
+                                    "request_id": {
+                                        "type": "number",
+                                        "description": "Id of the request"
                                     },
                                     "name": {
                                         "type": "string",

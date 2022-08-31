@@ -1,6 +1,9 @@
 import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extended";
+import { Config } from "common";
+import { DeploymentRequests } from "entities";
 import { Context } from "moleculer";
-import { ContractDeploymentRequest, ContractVerification, DeploymentRequest, ErrorCode, ErrorMessage, HandleDeploymentRequest, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams, RequestDeploymentParams, ResponseDto } from "../../types";
+import { DeploymentRequest, ErrorCode, ErrorMessage, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams, RejectDeploymentRequest, ResponseDto } from "../../types";
+const QueueService = require('moleculer-bull');
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -11,7 +14,14 @@ import { ContractDeploymentRequest, ContractVerification, DeploymentRequest, Err
 	/**
 	 * Mixins
 	 */
-	mixins: [],
+	mixins: [
+		QueueService(
+			`redis://${Config.REDIS_USERNAME}:${Config.REDIS_PASSWORD}@${Config.REDIS_HOST}:${Config.REDIS_PORT}/${Config.REDIS_DB_NUMBER}`,
+			{
+				prefix: 'handle.deployment-mainnet',
+			},
+		),
+	],
 	/**
 	 * Settings
 	 */
@@ -39,7 +49,7 @@ export default class DeploymentService extends MoleculerDBService<
 	 *        422:
 	 *          description: Missing parameters
 	 */
-	 @Get('/all-requests', {
+	@Get('/all-requests', {
 		name: 'getAllRequests',
 		/**
 		 * Service guard services allowed to connect
@@ -75,13 +85,11 @@ export default class DeploymentService extends MoleculerDBService<
 	 *            schema:
 	 *              type: object
 	 *              required:
-     *              - code_ids
+	 *              - request_id
 	 *              properties:
-	 *                code_ids:
-	 *                  type: array
-	 *                  items:
-	 *                    type: number
-	 *                  description: "Code ids of all contracts in the group"
+	 *                request_id:
+	 *                  type: number
+	 *                  description: "Id of the request"
 	 *      responses:
 	 *        200:
 	 *          description: Deployment result
@@ -95,20 +103,42 @@ export default class DeploymentService extends MoleculerDBService<
 		 */
 		restricted: ['api'],
 		params: {
-			code_ids: 'number[]'
+			request_id: 'number'
 		},
 	})
 	async deployContractOnMainnet(ctx: Context<DeploymentRequest>) {
-		await ctx.params.code_ids.forEach(async (code_id) => {
-			let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id });
-			await this.broker.call('v1.handleDeploymentMainnet.handlerequest', { smart_contract: result });
-		});
-		const response: ResponseDto = {
+		let requests: DeploymentRequests[] = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+		if (requests.length === 0) {
+			const response: ResponseDto = {
+				code: ErrorCode.REQUEST_NOT_FOUND,
+				message: ErrorMessage.REQUEST_NOT_FOUND,
+				data: { request_id: ctx.params.request_id }
+			};
+			return response;
+		} else if (requests[0].status !== MainnetUploadStatus.PENDING) {
+			const response: ResponseDto = {
+				code: ErrorCode.REQUEST_NOT_PENDING,
+				message: ErrorMessage.REQUEST_NOT_PENDING,
+				data: { request_id: ctx.params.request_id }
+			};
+			return response;
+		}
+		for (let req of requests) {
+			this.createJob(
+				'handle.deployment-mainnet',
+				{
+					code_id: req.euphoria_code_id,
+				},
+				{
+					removeOnComplete: true,
+				}
+			);
+		}
+		return {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,
 			data: null
 		};
-		return response;
 	}
 
 	/**
@@ -128,14 +158,12 @@ export default class DeploymentService extends MoleculerDBService<
 	 *            schema:
 	 *              type: object
 	 *              required:
-     *              - code_ids
-     *              - reason
+	 *              - request_id
+	 *              - reason
 	 *              properties:
-	 *                code_ids:
-	 *                  type: array
-	 *                  items:
-	 *                    type: number
-	 *                  description: "Code ids of all contracts in the group"
+	 *                request_id:
+	 *                  type: number
+	 *                  description: "Id of the request"
 	 *                reason:
 	 *                  type: string
 	 *                  description: "Reason for rejection"
@@ -152,18 +180,45 @@ export default class DeploymentService extends MoleculerDBService<
 		 */
 		restricted: ['api'],
 		params: {
-			code_ids: 'number[]',
+			request_id: 'number',
 			reason: 'string',
 		},
 	})
-	async rejectContractDeployment(ctx: Context<RejectDeploymentParams>) {
-		this.broker.call('v1.handleDeploymentMainnet.rejectrequest', { code_ids: ctx.params.code_ids, reason: ctx.params.reason });
-		const response: ResponseDto = {
+	async rejectContractDeployment(ctx: Context<RejectDeploymentRequest>) {
+		let code_ids: number[] = [];
+		let requests: DeploymentRequests[] = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+		if (requests.length === 0) {
+			const response: ResponseDto = {
+				code: ErrorCode.REQUEST_NOT_FOUND,
+				message: ErrorMessage.REQUEST_NOT_FOUND,
+				data: { request_id: ctx.params.request_id }
+			};
+			return response;
+		} else if (requests[0].status !== MainnetUploadStatus.PENDING) {
+			const response: ResponseDto = {
+				code: ErrorCode.REQUEST_NOT_PENDING,
+				message: ErrorMessage.REQUEST_NOT_PENDING,
+				data: { request_id: ctx.params.request_id }
+			};
+			return response;
+		}
+		requests.map(request => {
+			code_ids.push(request.euphoria_code_id!);
+		});
+		this.createJob(
+			'reject.deployment-mainnet',
+			{
+				code_ids,
+				reason: ctx.params.reason,
+			},
+			{
+				removeOnComplete: true,
+			}
+		);
+		return {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,
 			data: null
 		};
-
-		return response;
 	}
 }

@@ -2,7 +2,7 @@ import CallApiMixin from "../../mixins/callApi/call-api.mixin";
 import { Context, Service, ServiceBroker } from "moleculer";
 import { Job } from "bull";
 import { Config } from "../../common";
-import { DeploymentRequest, MainnetUploadStatus, UpdateContractStatusRequest } from "../../types";
+import { DeploymentParams, DeploymentRequest, MainnetUploadStatus, UpdateContractStatusRequest } from "../../types";
 import { dbSmartContractsMixin } from "../../mixins/dbMixins";
 const QueueService = require('moleculer-bull');
 
@@ -67,7 +67,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
                 },
                 rejectdeployment: {
                     name: 'rejectdeployment',
-                    handler: (ctx: Context<DeploymentRequest>) => {
+                    handler: (ctx: Context<DeploymentParams>) => {
                         this.logger.debug(`Reject contract deployment request`);
                         this.createJob(
                             'reject.deployment-euphoria',

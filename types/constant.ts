@@ -18,6 +18,7 @@ export enum MainnetUploadStatus {
     SUCCESS = 'Successful',
     REJECTED = 'Rejected',
     PENDING = 'Pending',
+    ERROR = 'Error',
 }
 
 export enum ContractVerification {

@@ -2,7 +2,7 @@ import CallApiMixin from "../../mixins/callApi/call-api.mixin";
 import { Context, Service, ServiceBroker } from "moleculer";
 import { Job } from "bull";
 import { Config } from "../../common";
-import { AppConstants, HandleDeploymentRequest, MainnetUploadStatus, RejectDeploymentParams } from "../../types";
+import { AppConstants, ContractDeploymentRequest, MainnetUploadStatus, RejectDeploymentParams } from "../../types";
 import { DeploymentRequests, SmartContracts } from "../../entities";
 import { dbDeploymentRequestsMixin } from "../../mixins/dbMixins";
 import { KMSSigner, Network } from "../../utils";
@@ -39,7 +39,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleJob(job.data.smart_contract);
+                        await this.handleJob(job.data.code_id);
                         job.progress(100);
                         return true;
                     },
@@ -58,12 +58,12 @@ export default class HandleDeploymentMainnetService extends Service {
             actions: {
                 handlerequest: {
                     name: 'handlerequest',
-                    handler: (ctx: Context<HandleDeploymentRequest>) => {
+                    handler: (ctx: Context<ContractDeploymentRequest>) => {
                         this.logger.debug(`Deploy contract on mainnet`);
                         this.createJob(
                             'handle.deployment-mainnet',
                             {
-                                smart_contract: ctx.params.smart_contract,
+                                code_id: ctx.params.code_id,
                             },
                             {
                                 removeOnComplete: true,
@@ -91,73 +91,93 @@ export default class HandleDeploymentMainnetService extends Service {
         })
     }
 
-    async handleJob(smart_contract: SmartContracts) {
-        // const client = await CosmWasmClient.connect(Config.EUPHORIA_RPC);
-        const client = await CosmWasmClient.connect(Config.DEV_RPC);
-        const codeDetails = await client.getCodeDetails(smart_contract.code_id!);
-        this.logger.info('Code details:', codeDetails);
+    async handleJob(code_id: number) {
+        try {
+            // const client = await CosmWasmClient.connect(Config.EUPHORIA_RPC);
+            const client = await CosmWasmClient.connect(Config.DEV_RPC);
+            const codeDetails = await client.getCodeDetails(code_id);
+            this.logger.info('Code details:', codeDetails);
 
-        // Get signer
-        const signer = new KMSSigner(Config.SIGNER_WALLET_ADDRESS);
+            // Get signer
+            const signer = new KMSSigner(Config.SIGNER_WALLET_ADDRESS);
 
-        // Get system address info
-        const account = await signer.getAccount();
-        this.logger.info('System account:', account);
+            // Get system address info
+            const account = await signer.getAccount();
+            this.logger.info('System account:', account);
 
-        // Connect network
-        this.network = await Network.connectWithSigner(
-            // Config.MAINNET_RPC,
-            Config.SERENITY_RPC,
-            // Config.DEV_RPC,
-            account,
-            signer,
-            { gasPrice: this.defaultGasPrice }
-        );
+            // Connect network
+            this.network = await Network.connectWithSigner(
+                // Config.MAINNET_RPC,
+                Config.SERENITY_RPC,
+                // Config.DEV_RPC,
+                account,
+                signer,
+                { gasPrice: this.defaultGasPrice }
+            );
 
-        const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
-        this.logger.info('Code id:', codeId);
+            const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
+            this.logger.info('Code id:', codeId);
 
-        await this.adapter.updateMany(
-            { euphoria_code_id: smart_contract.code_id! },
-            {
-                mainnet_code_id: codeId,
-                status: MainnetUploadStatus.SUCCESS,
-            }
-        );
+            await this.adapter.updateMany(
+                { euphoria_code_id: code_id },
+                {
+                    mainnet_code_id: codeId,
+                    status: MainnetUploadStatus.SUCCESS,
+                }
+            );
 
-        const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: smart_contract.code_id } });
-        await this.sendEmail(
-            request.email,
-            'Contract upload on Mainnet successful!',
-            `
+            const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_id } });
+            await this.sendEmail(
+                request.email,
+                'Contract upload on Mainnet successful!',
+                `
                 <p>Your contract source code with code ID ${request.euphoria_code_id} on Euphoria has been uploaded on Mainnet</p>
                 <p>Code ID on Mainnet: ${codeId}</p>
             `,
-        );
+            );
 
-        this.broker.call('v1.handleDeploymentEuphoria.executedeployment', { euphoria_code_id: smart_contract.code_id!, mainnet_code_id: codeId });
+            this.broker.call('v1.handleDeploymentEuphoria.executedeployment', { euphoria_code_id: code_id, mainnet_code_id: codeId });
+        } catch (error: any) {
+            this.logger.error(error);
+            await this.adapter.updateMany(
+                { euphoria_code_id: code_id },
+                {
+                    status: MainnetUploadStatus.ERROR,
+                }
+            );
+        }
     }
 
     async handleRejectionJob(code_ids: number[], reason: string) {
-        await this.adapter.updateMany(
-            { euphoria_code_id: [...code_ids] },
-            {
-                status: MainnetUploadStatus.REJECTED,
-                reason,
-            }
-        );
+        try {
+            await this.adapter.updateMany(
+                { euphoria_code_id: [...code_ids] },
+                {
+                    status: MainnetUploadStatus.REJECTED,
+                    reason,
+                }
+            );
 
-        const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_ids[0] } });
-        await this.sendEmail(
-            request.email,
-            'Request upload contract on Mainnet rejected!',
-            `
-                <p>Your request to upload contract source code with code ID(s) ${code_ids} on Euphoria to Mainnet has been rejected!</p>
-                <p>Reason: ${reason}</p>
-            `,
-        );
+            const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_ids[0] } });
+            await this.sendEmail(
+                request.email,
+                'Request upload contract on Mainnet rejected!',
+                `
+                    <p>Your request to upload contract source code with code ID(s) ${code_ids} on Euphoria to Mainnet has been rejected!</p>
+                    <p>Reason: ${reason}</p>
+                `,
+            );
 
-        this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids });
+            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids });
+        } catch (error: any) {
+            this.logger.error(error);
+            await this.adapter.updateMany(
+                { euphoria_code_id: code_ids },
+                {
+                    status: MainnetUploadStatus.ERROR,
+                }
+            );
+        }
     }
 
     async storeCode(senderAddress: string, wasmCode: Uint8Array, fee: StdFee | 'auto' | number) {
