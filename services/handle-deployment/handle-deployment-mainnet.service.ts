@@ -93,8 +93,7 @@ export default class HandleDeploymentMainnetService extends Service {
 
     async handleJob(code_id: number) {
         try {
-            // const client = await CosmWasmClient.connect(Config.EUPHORIA_RPC);
-            const client = await CosmWasmClient.connect(Config.DEV_RPC);
+            const client = await CosmWasmClient.connect(Config.BASE_RPC);
             const codeDetails = await client.getCodeDetails(code_id);
             this.logger.info('Code details:', codeDetails);
 
@@ -107,9 +106,7 @@ export default class HandleDeploymentMainnetService extends Service {
 
             // Connect network
             this.network = await Network.connectWithSigner(
-                // Config.MAINNET_RPC,
-                Config.SERENITY_RPC,
-                // Config.DEV_RPC,
+                Config.TARGET_RPC,
                 account,
                 signer,
                 { gasPrice: this.defaultGasPrice }

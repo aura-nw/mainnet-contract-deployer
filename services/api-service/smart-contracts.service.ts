@@ -39,17 +39,4 @@ export default class SmartContractsService extends MoleculerDBService<
         });
 		return result;
 	}
-
-	@Action({
-		name: 'getListContracts',
-	})
-	async getListContracts(ctx: Context<RejectDeploymentParams>) {
-		const result: any = await this.adapter.find({
-            query: {
-                code_id: ctx.params.code_ids,
-                contract_verification: [ContractVerification.EXACT_MATCH, ContractVerification.SIMILAR_MATCH]
-            }
-        });
-		return result;
-	}
 }
