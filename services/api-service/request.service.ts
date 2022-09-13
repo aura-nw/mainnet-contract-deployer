@@ -110,6 +110,7 @@ export default class RequestService extends MoleculerDBService<
 	 *      parameters:
 	 *        - in: query
 	 *          name: request_id
+	 *          required: true
 	 *          schema:
 	 *            type: number
 	 *          description: Id of the request
