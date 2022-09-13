@@ -20,6 +20,7 @@ const dbBaseMixin = new DbBaseMixin({
             },
             created_at: Date,
             updated_at: Date,
+            verified_at: Date,
             height: Number,
             code_id: Number,
             contract_name: String,
@@ -35,8 +36,12 @@ const dbBaseMixin = new DbBaseMixin({
             contract_verification: String,
             compiler_version: String,
             s3_location: String,
-            mainnet_code_id: String,
+            reference_code_id: String,
             mainnet_upload_status: String,
+            token_name: String,
+            token_symbol: String,
+            num_tokens: Number,
+            is_minted: Boolean,
         }
     },
 });

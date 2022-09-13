@@ -45,6 +45,7 @@ const dbBaseMixin = new DbBaseMixin({
             status: String,
             reason: String,
             request_id: Number,
+            requester_address: String,
         }
     },
 });
