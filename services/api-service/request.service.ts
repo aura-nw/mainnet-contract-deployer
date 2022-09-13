@@ -1,7 +1,7 @@
 import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extended";
-import { DeploymentRequests } from "entities";
+import { DeploymentRequests } from "../../entities";
 import { Context } from "moleculer";
-import { ErrorCode, ErrorMessage, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto, UpdateRequestDeploymentParams } from "../../types";
+import { ErrorCode, ErrorMessage, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto, UpdateRequestDeploymentParams } from "../../types";
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -32,6 +32,115 @@ export default class RequestService extends MoleculerDBService<
 	/**
 	 *  @swagger
 	 *
+	 *  /api/v1/request/all-requests:
+	 *    get:
+	 *      tags:
+	 *        - "Requests"
+	 *      summary:  Show list of all requests
+	 *      description: Show list of all requests
+	 *      security:
+	 *        - bearerAuth: []
+	 *      parameters:
+	 *        - in: query
+	 *          name: status
+	 *          schema:
+	 *            type: string
+	 *            enum: ["Successful", "Rejected", "Pending"]
+	 *          description: Status of the request
+	 *        - in: query
+	 *          name: requester_address
+	 *          schema:
+	 *            type: string
+	 *          description: Address of the one create the request
+	 *        - in: query
+	 *          name: limit
+	 *          required: true
+	 *          schema:
+	 *            type: number
+	 *            default: 10
+	 *          description: Limit number of requests returned
+	 *        - in: query
+	 *          name: offset
+	 *          required: true
+	 *          schema:
+	 *            type: number
+	 *            default: 0
+	 *          description: Number of requests to pass
+	 *      responses:
+	 *        200:
+	 *          description: List requests result
+	 *        422:
+	 *          description: Missing parameters
+	 */
+	 @Get('/all-requests', {
+		name: 'getAllRequests',
+		/**
+		 * Service guard services allowed to connect
+		 */
+		restricted: ['api'],
+	})
+	async getAllRequests(ctx: Context<ListRequestsParams>) {
+		let result = await this.broker.call('v1.deployment-requests.getAll', {
+			status: ctx.params.status,
+			requester_address: ctx.params.requester_address,
+			limit: ctx.params.limit,
+			offset: ctx.params.offset
+		} as ListRequestsParams);
+
+		const response: ResponseDto = {
+			code: ErrorCode.SUCCESSFUL,
+			message: ErrorMessage.SUCCESSFUL,
+			data: result
+		};
+
+		return response;
+	}
+
+	/**
+	 *  @swagger
+	 *
+	 *  /api/v1/request/details:
+	 *    get:
+	 *      tags:
+	 *        - "Requests"
+	 *      summary:  Show list of all requests
+	 *      description: Show list of all requests
+	 *      security:
+	 *        - bearerAuth: []
+	 *      parameters:
+	 *        - in: query
+	 *          name: request_id
+	 *          schema:
+	 *            type: number
+	 *          description: Id of the request
+	 *      responses:
+	 *        200:
+	 *          description: List requests result
+	 *        422:
+	 *          description: Missing parameters
+	 */
+	 @Get('/details', {
+		name: 'getRequestDetails',
+		/**
+		 * Service guard services allowed to connect
+		 */
+		restricted: ['api'],
+	})
+	async getRequestDetails(ctx: Context<GetRequestsParams>) {
+		let result: DeploymentRequests = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+
+		const response: ResponseDto = {
+			code: ErrorCode.SUCCESSFUL,
+			message: ErrorMessage.SUCCESSFUL,
+			data: result
+		};
+
+		return response;
+	}
+
+	/**
+	 *  @swagger
+	 *
 	 *  /api/v1/request/create:
 	 *    post:
 	 *      tags:
@@ -45,6 +154,7 @@ export default class RequestService extends MoleculerDBService<
 	 *              type: object
 	 *              required:
 	 *              - code_ids
+	 *              - requester_address
 	 *              - name
 	 *              - email
 	 *              - contract_description
@@ -54,6 +164,9 @@ export default class RequestService extends MoleculerDBService<
 	 *                  items:
 	 *                    type: number
 	 *                  description: "Code ids of all contracts in the group"
+	 *                requester_address:
+	 *                  type: string
+	 *                  description: "Address of subscriber"
 	 *                name:
 	 *                  type: string
 	 *                  description: "Name of subscriber"
@@ -107,6 +220,7 @@ export default class RequestService extends MoleculerDBService<
 		restricted: ['api'],
 		params: {
 			code_ids: 'number[]',
+			requester_address: 'string',
 			name: 'string',
 			email: 'string',
 			contract_description: 'string',
@@ -126,6 +240,7 @@ export default class RequestService extends MoleculerDBService<
 		let notFoundContracts: number[] = [];
 		let deployedContracts: number[] = [];
 		let pendingContracts: number[] = [];
+		let requester_address = ctx.params.requester_address;
 		let name = ctx.params.name;
 		let email = ctx.params.email;
 		let contract_description = ctx.params.contract_description;
@@ -161,6 +276,7 @@ export default class RequestService extends MoleculerDBService<
 				this.broker.call('v1.handleRequestEuphoria.updatestatus', { code_id });
 				this.broker.call('v1.handleRequestMainnet.updatestatus', {
 					code_id,
+					requester_address,
 					name,
 					email,
 					contract_description,

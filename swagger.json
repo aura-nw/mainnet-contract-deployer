@@ -61,28 +61,6 @@
                 }
             }
         },
-        "/admin/v1/deployment/all-requests": {
-            "get": {
-                "tags": [
-                    "Contract Deployment"
-                ],
-                "summary": "Show list of all requests",
-                "description": "Show list of all requests",
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List requests result"
-                    },
-                    "422": {
-                        "description": "Missing parameters"
-                    }
-                }
-            }
-        },
         "/admin/v1/deployment/approve": {
             "post": {
                 "tags": [
@@ -168,6 +146,103 @@
                 }
             }
         },
+        "/api/v1/request/all-requests": {
+            "get": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Show list of all requests",
+                "description": "Show list of all requests",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Successful",
+                                "Rejected",
+                                "Pending"
+                            ]
+                        },
+                        "description": "Status of the request"
+                    },
+                    {
+                        "in": "query",
+                        "name": "requester_address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Address of the one create the request"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "default": 10
+                        },
+                        "description": "Limit number of requests returned"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "description": "Number of requests to pass"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List requests result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
+        "/api/v1/request/details": {
+            "get": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Show list of all requests",
+                "description": "Show list of all requests",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "request_id",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "description": "Id of the request"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List requests result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
         "/api/v1/request/create": {
             "post": {
                 "tags": [
@@ -182,6 +257,7 @@
                                 "type": "object",
                                 "required": [
                                     "code_ids",
+                                    "requester_address",
                                     "name",
                                     "email",
                                     "contract_description"
@@ -193,6 +269,10 @@
                                             "type": "number"
                                         },
                                         "description": "Code ids of all contracts in the group"
+                                    },
+                                    "requester_address": {
+                                        "type": "string",
+                                        "description": "Address of subscriber"
                                     },
                                     "name": {
                                         "type": "string",

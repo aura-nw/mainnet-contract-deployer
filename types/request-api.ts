@@ -2,6 +2,7 @@ import { DeploymentRequests, SmartContracts } from "entities";
 
 export interface RequestDeploymentParams {
     code_ids: number[];
+    requester_address: string;
     name: string;
     email: string;
     contract_description: string;
@@ -67,6 +68,7 @@ export interface ContractDeploymentRequest {
 
 export interface HandleRequestParams {
     code_id: number;
+    requester_address: string;
     name: string;
     email: string;
     contract_description: string;
@@ -107,4 +109,11 @@ export interface RejectDeploymentParams {
 
 export interface GetRequestsParams {
     request_id: number;
+}
+
+export interface ListRequestsParams {
+    status: string;
+    requester_address: string;
+    limit: number;
+    offset: number;
 }

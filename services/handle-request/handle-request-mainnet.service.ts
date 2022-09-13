@@ -34,6 +34,7 @@ export default class HandleRequestMainnetService extends Service {
                         // @ts-ignore
                         this.handleJob(
                             job.data.code_id,
+                            job.data.requester_address,
                             job.data.name,
                             job.data.email,
                             job.data.contract_description,
@@ -71,6 +72,7 @@ export default class HandleRequestMainnetService extends Service {
                             'handle.request-mainnet',
                             {
                                 code_id: ctx.params.code_id,
+                                requester_address: ctx.params.requester_address,
                                 name: ctx.params.name,
                                 email: ctx.params.email,
                                 contract_description: ctx.params.contract_description,
@@ -105,6 +107,7 @@ export default class HandleRequestMainnetService extends Service {
 
     async handleJob(
         code_id: number,
+        requester_address: string,
         name: string,
         email: string,
         contract_description: string,
@@ -150,7 +153,8 @@ export default class HandleRequestMainnetService extends Service {
             compiler_version,
             s3_location,
             status: MainnetUploadStatus.PENDING,
-            request_id
+            request_id,
+            requester_address
         };
         await this.adapter.insert(deploymentRequest);
     }

@@ -1,8 +1,8 @@
 import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extended";
-import { Config } from "common";
-import { DeploymentRequests } from "entities";
+import { Config } from "../../common";
+import { DeploymentRequests } from "../../entities";
 import { Context } from "moleculer";
-import { DeploymentRequest, ErrorCode, ErrorMessage, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams, RejectDeploymentRequest, ResponseDto } from "../../types";
+import { DeploymentRequest, ErrorCode, ErrorMessage, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams, RejectDeploymentRequest, ResponseDto } from "../../types";
 const QueueService = require('moleculer-bull');
 
 /**
@@ -32,42 +32,6 @@ export default class DeploymentService extends MoleculerDBService<
 },
 {}
 > {
-	/**
-	 *  @swagger
-	 *
-	 *  /admin/v1/deployment/all-requests:
-	 *    get:
-	 *      tags:
-	 *        - "Contract Deployment"
-	 *      summary:  Show list of all requests
-	 *      description: Show list of all requests
-	 *      security:
-	 *        - bearerAuth: []
-	 *      responses:
-	 *        200:
-	 *          description: List requests result
-	 *        422:
-	 *          description: Missing parameters
-	 */
-	@Get('/all-requests', {
-		name: 'getAllRequests',
-		/**
-		 * Service guard services allowed to connect
-		 */
-		restricted: ['api'],
-	})
-	async getAllRequests() {
-		let result = await this.broker.call('v1.deployment-requests.getAll');
-
-		const response: ResponseDto = {
-			code: ErrorCode.SUCCESSFUL,
-			message: ErrorMessage.SUCCESSFUL,
-			data: result
-		};
-
-		return response;
-	}
-
 	/**
 	 *  @swagger
 	 *
