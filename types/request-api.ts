@@ -13,45 +13,15 @@ export interface RequestDeploymentParams {
     whitepaper: string;
     github: string;
     telegram: string;
+    wechat: string;
+    linkedin: string;
     discord: string;
+    medium: string;
+    reddit: string;
+    slack: string;
     facebook: string;
     twitter: string;
-}
-
-export interface UpdateRequestDeploymentParams {
-    request_id: number;
-    name: string;
-    email: string;
-    contract_description: string;
-    project_name: string;
-    official_project_website: string;
-    official_project_email: string;
-    project_sector: string;
-    whitepaper: string;
-    github: string;
-    telegram: string;
-    discord: string;
-    facebook: string;
-    twitter: string;
-}
-
-export interface UpdateRequestParams {
-    request_id: number;
-    name: string;
-    email: string;
-    contract_description: string;
-    project_name: string;
-    official_project_website: string;
-    official_project_email: string;
-    project_sector: string;
-    whitepaper: string;
-    github: string;
-    telegram: string;
-    discord: string;
-    facebook: string;
-    twitter: string;
-    status: string;
-    reason: string;
+    bitcointalk: string;
 }
 
 export interface DeploymentRequest {
@@ -79,9 +49,15 @@ export interface HandleRequestParams {
     whitepaper: string;
     github: string;
     telegram: string;
+    wechat: string;
+    linkedin: string;
     discord: string;
+    medium: string;
+    reddit: string;
+    slack: string;
     facebook: string;
     twitter: string;
+    bitcointalk: string;
     contract_hash: string;
     url: string;
     instantiate_msg_schema: string;

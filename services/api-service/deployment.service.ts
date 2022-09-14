@@ -35,6 +35,116 @@ export default class DeploymentService extends MoleculerDBService<
 	/**
 	 *  @swagger
 	 *
+	 *  /admin/v1/deployment/all-requests:
+	 *    get:
+	 *      tags:
+	 *        - "Contract Deployment"
+	 *      summary:  Show list of all requests
+	 *      description: Show list of all requests
+	 *      security:
+	 *        - bearerAuth: []
+	 *      parameters:
+	 *        - in: query
+	 *          name: status
+	 *          schema:
+	 *            type: string
+	 *            enum: ["Successful", "Rejected", "Pending"]
+	 *          description: Status of the request
+	 *        - in: query
+	 *          name: requester_address
+	 *          schema:
+	 *            type: string
+	 *          description: Address of the one create the request
+	 *        - in: query
+	 *          name: limit
+	 *          required: true
+	 *          schema:
+	 *            type: number
+	 *            default: 10
+	 *          description: Limit number of requests returned
+	 *        - in: query
+	 *          name: offset
+	 *          required: true
+	 *          schema:
+	 *            type: number
+	 *            default: 0
+	 *          description: Number of requests to pass
+	 *      responses:
+	 *        200:
+	 *          description: List requests result
+	 *        422:
+	 *          description: Missing parameters
+	 */
+	 @Get('/all-requests', {
+		name: 'getAllRequests',
+		/**
+		 * Service guard services allowed to connect
+		 */
+		restricted: ['api'],
+	})
+	async getAllRequests(ctx: Context<ListRequestsParams>) {
+		let result = await this.broker.call('v1.deployment-requests.getAll', {
+			status: ctx.params.status,
+			requester_address: ctx.params.requester_address,
+			limit: ctx.params.limit,
+			offset: ctx.params.offset
+		} as ListRequestsParams);
+
+		const response: ResponseDto = {
+			code: ErrorCode.SUCCESSFUL,
+			message: ErrorMessage.SUCCESSFUL,
+			data: result
+		};
+
+		return response;
+	}
+
+	/**
+	 *  @swagger
+	 *
+	 *  /admin/v1/deployment/details:
+	 *    get:
+	 *      tags:
+	 *        - "Contract Deployment"
+	 *      summary:  Show list of all requests
+	 *      description: Show list of all requests
+	 *      security:
+	 *        - bearerAuth: []
+	 *      parameters:
+	 *        - in: query
+	 *          name: request_id
+	 *          required: true
+	 *          schema:
+	 *            type: number
+	 *          description: Id of the request
+	 *      responses:
+	 *        200:
+	 *          description: List requests result
+	 *        422:
+	 *          description: Missing parameters
+	 */
+	 @Get('/details', {
+		name: 'getRequestDetails',
+		/**
+		 * Service guard services allowed to connect
+		 */
+		restricted: ['api'],
+	})
+	async getRequestDetails(ctx: Context<GetRequestsParams>) {
+		let result: DeploymentRequests = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+
+		const response: ResponseDto = {
+			code: ErrorCode.SUCCESSFUL,
+			message: ErrorMessage.SUCCESSFUL,
+			data: result
+		};
+
+		return response;
+	}
+
+	/**
+	 *  @swagger
+	 *
 	 *  /admin/v1/deployment/approve:
 	 *    post:
 	 *      tags:

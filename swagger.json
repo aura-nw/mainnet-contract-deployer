@@ -61,6 +61,104 @@
                 }
             }
         },
+        "/admin/v1/deployment/all-requests": {
+            "get": {
+                "tags": [
+                    "Contract Deployment"
+                ],
+                "summary": "Show list of all requests",
+                "description": "Show list of all requests",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Successful",
+                                "Rejected",
+                                "Pending"
+                            ]
+                        },
+                        "description": "Status of the request"
+                    },
+                    {
+                        "in": "query",
+                        "name": "requester_address",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Address of the one create the request"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "default": 10
+                        },
+                        "description": "Limit number of requests returned"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "description": "Number of requests to pass"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List requests result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
+        "/admin/v1/deployment/details": {
+            "get": {
+                "tags": [
+                    "Contract Deployment"
+                ],
+                "summary": "Show list of all requests",
+                "description": "Show list of all requests",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "request_id",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "description": "Id of the request"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List requests result"
+                    },
+                    "422": {
+                        "description": "Missing parameters"
+                    }
+                }
+            }
+        },
         "/admin/v1/deployment/approve": {
             "post": {
                 "tags": [
@@ -146,103 +244,6 @@
                 }
             }
         },
-        "/api/v1/request/all-requests": {
-            "get": {
-                "tags": [
-                    "Requests"
-                ],
-                "summary": "Show list of all requests",
-                "description": "Show list of all requests",
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "status",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "Successful",
-                                "Rejected",
-                                "Pending"
-                            ]
-                        },
-                        "description": "Status of the request"
-                    },
-                    {
-                        "in": "query",
-                        "name": "requester_address",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "Address of the one create the request"
-                    },
-                    {
-                        "in": "query",
-                        "name": "limit",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "default": 10
-                        },
-                        "description": "Limit number of requests returned"
-                    },
-                    {
-                        "in": "query",
-                        "name": "offset",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "default": 0
-                        },
-                        "description": "Number of requests to pass"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List requests result"
-                    },
-                    "422": {
-                        "description": "Missing parameters"
-                    }
-                }
-            }
-        },
-        "/api/v1/request/details": {
-            "get": {
-                "tags": [
-                    "Requests"
-                ],
-                "summary": "Show list of all requests",
-                "description": "Show list of all requests",
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "request_id",
-                        "schema": {
-                            "type": "number"
-                        },
-                        "description": "Id of the request"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List requests result"
-                    },
-                    "422": {
-                        "description": "Missing parameters"
-                    }
-                }
-            }
-        },
         "/api/v1/request/create": {
             "post": {
                 "tags": [
@@ -314,9 +315,29 @@
                                         "type": "string",
                                         "description": "Official project telegram"
                                     },
+                                    "wechat": {
+                                        "type": "string",
+                                        "description": "Official project wechat"
+                                    },
+                                    "linkedin": {
+                                        "type": "string",
+                                        "description": "Official project linkedin"
+                                    },
                                     "discord": {
                                         "type": "string",
                                         "description": "Official project discord"
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "description": "Official project medium"
+                                    },
+                                    "reddit": {
+                                        "type": "string",
+                                        "description": "Official project reddit"
+                                    },
+                                    "slack": {
+                                        "type": "string",
+                                        "description": "Official project slack"
                                     },
                                     "facebook": {
                                         "type": "string",
@@ -325,93 +346,10 @@
                                     "twitter": {
                                         "type": "string",
                                         "description": "Official project twitter"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Request result"
-                    },
-                    "422": {
-                        "description": "Missing parameters"
-                    }
-                }
-            }
-        },
-        "/api/v1/request/update": {
-            "post": {
-                "tags": [
-                    "Requests"
-                ],
-                "summary": "Update a request to deploy a contract on mainnet",
-                "description": "Update a request to deploy a contract on mainnet",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "request_id"
-                                ],
-                                "properties": {
-                                    "request_id": {
-                                        "type": "number",
-                                        "description": "Id of the request"
                                     },
-                                    "name": {
+                                    "bitcointalk": {
                                         "type": "string",
-                                        "description": "Name of subscriber"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "description": "Email of subscriber"
-                                    },
-                                    "contract_description": {
-                                        "type": "string",
-                                        "description": "Description of contract(s)"
-                                    },
-                                    "project_name": {
-                                        "type": "string",
-                                        "description": "Project name"
-                                    },
-                                    "official_project_website": {
-                                        "type": "string",
-                                        "description": "Official project website"
-                                    },
-                                    "official_project_email": {
-                                        "type": "string",
-                                        "description": "Official project email"
-                                    },
-                                    "project_sector": {
-                                        "type": "string",
-                                        "description": "Sector of the contract in the project"
-                                    },
-                                    "whitepaper": {
-                                        "type": "string",
-                                        "description": "Official project whitepaper"
-                                    },
-                                    "github": {
-                                        "type": "string",
-                                        "description": "Official project github"
-                                    },
-                                    "telegram": {
-                                        "type": "string",
-                                        "description": "Official project telegram"
-                                    },
-                                    "discord": {
-                                        "type": "string",
-                                        "description": "Official project discord"
-                                    },
-                                    "facebook": {
-                                        "type": "string",
-                                        "description": "Official project facebook"
-                                    },
-                                    "twitter": {
-                                        "type": "string",
-                                        "description": "Official project twitter"
+                                        "description": "Official project bitcointalk"
                                     }
                                 }
                             }

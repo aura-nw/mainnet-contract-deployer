@@ -3,7 +3,7 @@
 'use strict';
 import { Service, Action } from '@ourparentcenter/moleculer-decorators-extended';
 import { dbDeploymentRequestsMixin } from '../../mixins/dbMixins';
-import { DeploymentRequest, getActionConfig, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RestOptions, UpdateRequestDeploymentParams, UpdateRequestParams } from '../../types';
+import { DeploymentRequest, getActionConfig, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService } from '../../types';
 import { DeploymentRequests } from 'entities';
 import { Context } from 'moleculer';
 
@@ -78,34 +78,5 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 		});
 		if (result.length === 0) return 0;
 		return result[0].request_id;
-	}
-
-	@Action({
-		name: 'updateRequests',
-	})
-	async updateRequests(ctx: Context<UpdateRequestParams>) {
-		const result: any = await this.adapter.updateMany(
-			{
-				request_id: ctx.params.request_id,
-			},
-			{
-				name: ctx.params.name,
-				email: ctx.params.email,
-				contract_description: ctx.params.contract_description,
-				project_name: ctx.params.project_name,
-				official_project_website: ctx.params.official_project_website,
-				official_project_email: ctx.params.official_project_email,
-				project_sector: ctx.params.project_sector,
-				whitepaper: ctx.params.whitepaper,
-				github: ctx.params.github,
-				telegram: ctx.params.telegram,
-				discord: ctx.params.discord,
-				facebook: ctx.params.facebook,
-				twitter: ctx.params.twitter,
-				status: ctx.params.status,
-				reason: ctx.params.reason,
-			},
-		);
-		return result;
 	}
 }
