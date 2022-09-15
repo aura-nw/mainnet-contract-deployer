@@ -71,7 +71,7 @@ const swMiddleware = swStats.getMiddleware({
 			},
 			{
 				path: '/admin',
-				whitelist: ['$node.*', 'api.listAliases'],
+				whitelist: ['$node.*', 'api.listAliases', 'v1.deployment.*'],
 				authorization: true,
 				authentication: true,
 				// roles: [UserRole.SUPERADMIN],
