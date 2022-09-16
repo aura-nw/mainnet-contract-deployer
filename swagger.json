@@ -80,7 +80,7 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "Successful",
+                                "Approved",
                                 "Rejected",
                                 "Pending"
                             ]

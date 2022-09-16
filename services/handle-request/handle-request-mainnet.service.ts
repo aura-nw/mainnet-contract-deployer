@@ -4,6 +4,7 @@ import { Job } from "bull";
 import { Config } from "../../common";
 import { ContractVerification, HandleRequestParams, MainnetUploadStatus } from "../../types";
 import { dbDeploymentRequestsMixin } from "../../mixins/dbMixins";
+import { DeploymentRequests } from "entities";
 const QueueService = require('moleculer-bull');
 
 export default class HandleRequestMainnetService extends Service {
@@ -45,9 +46,15 @@ export default class HandleRequestMainnetService extends Service {
                             job.data.whitepaper,
                             job.data.github,
                             job.data.telegram,
+                            job.data.wechat,
+                            job.data.linkedin,
                             job.data.discord,
+                            job.data.medium,
+                            job.data.reddit,
+                            job.data.slack,
                             job.data.facebook,
                             job.data.twitter,
+                            job.data.bitcointalk,
                             job.data.contract_hash,
                             job.data.url,
                             job.data.instantiate_msg_schema,
@@ -142,38 +149,37 @@ export default class HandleRequestMainnetService extends Service {
         s3_location: string,
         request_id: number
     ) {
-        const deploymentRequest = {
-            name,
-            email,
-            contract_description,
-            project_name,
-            official_project_website,
-            official_project_email,
-            project_sector,
-            whitepaper,
-            github,
-            telegram,
-            wechat,
-            linkedin,
-            discord,
-            medium,
-            reddit,
-            slack,
-            facebook,
-            twitter,
-            bitcointalk,
-            euphoria_code_id: code_id,
-            contract_hash,
-            url,
-            instantiate_msg_schema,
-            query_msg_schema,
-            execute_msg_schema,
-            compiler_version,
-            s3_location,
-            status: MainnetUploadStatus.PENDING,
-            request_id,
-            requester_address
-        };
+        let deploymentRequest = new DeploymentRequests();
+        deploymentRequest.name = name;
+        deploymentRequest.email = email;
+        deploymentRequest.contract_description = contract_description;
+        deploymentRequest.project_name = project_name;
+        deploymentRequest.official_project_website = official_project_website;
+        deploymentRequest.official_project_email = official_project_email;
+        deploymentRequest.project_sector = project_sector;
+        deploymentRequest.whitepaper = whitepaper;
+        deploymentRequest.github = github;
+        deploymentRequest.telegram = telegram;
+        deploymentRequest.wechat = wechat;
+        deploymentRequest.linkedin = linkedin;
+        deploymentRequest.discord = discord;
+        deploymentRequest.medium = medium;
+        deploymentRequest.reddit = reddit;
+        deploymentRequest.slack = slack;
+        deploymentRequest.facebook = facebook;
+        deploymentRequest.twitter = twitter;
+        deploymentRequest.bitcointalk = bitcointalk;
+        deploymentRequest.euphoria_code_id = code_id,
+        deploymentRequest.contract_hash = contract_hash;
+        deploymentRequest.url = url;
+        deploymentRequest.instantiate_msg_schema = instantiate_msg_schema;
+        deploymentRequest.query_msg_schema = query_msg_schema;
+        deploymentRequest.execute_msg_schema = execute_msg_schema;
+        deploymentRequest.compiler_version = compiler_version;
+        deploymentRequest.s3_location = s3_location;
+        deploymentRequest.status = MainnetUploadStatus.PENDING;
+        deploymentRequest.request_id = request_id;
+        deploymentRequest.requester_address = requester_address;
         await this.adapter.insert(deploymentRequest);
     }
 

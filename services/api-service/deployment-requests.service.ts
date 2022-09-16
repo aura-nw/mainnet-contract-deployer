@@ -33,7 +33,7 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 	async getAll(ctx: Context<ListRequestsParams>) {
 		let query = `
 			SELECT * FROM ( 
-				SELECT *, GROUP_CONCAT(DISTINCT CONCAT(euphoria_code_id,',',mainnet_code_id) SEPARATOR ' | ') AS code_ids 
+				SELECT *, GROUP_CONCAT(DISTINCT CONCAT(euphoria_code_id,',',mainnet_code_id) SEPARATOR ',') AS code_ids 
 				FROM deployment_requests 
 				GROUP BY request_id) dr
 		`;
@@ -59,7 +59,7 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 		// @ts-ignore
 		const result = await this.adapter.db.query(`
 			SELECT * FROM ( 
-				SELECT *, GROUP_CONCAT(DISTINCT CONCAT(euphoria_code_id,',',mainnet_code_id) SEPARATOR ' | ') AS code_ids 
+				SELECT *, GROUP_CONCAT(DISTINCT CONCAT(euphoria_code_id,',',mainnet_code_id) SEPARATOR ',') AS code_ids 
 				FROM deployment_requests 
 				GROUP BY request_id) dr 
 			WHERE request_id = ${ctx.params.request_id};

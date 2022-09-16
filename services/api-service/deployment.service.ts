@@ -27,10 +27,10 @@ const QueueService = require('moleculer-bull');
 	 */
 })
 export default class DeploymentService extends MoleculerDBService<
-{
-	rest: 'v1/deployment';
-},
-{}
+	{
+		rest: 'v1/deployment';
+	},
+	{}
 > {
 	/**
 	 *  @swagger
@@ -48,7 +48,7 @@ export default class DeploymentService extends MoleculerDBService<
 	 *          name: status
 	 *          schema:
 	 *            type: string
-	 *            enum: ["Successful", "Rejected", "Pending"]
+	 *            enum: ["Approved", "Rejected", "Pending"]
 	 *          description: Status of the request
 	 *        - in: query
 	 *          name: requester_address
@@ -75,7 +75,7 @@ export default class DeploymentService extends MoleculerDBService<
 	 *        422:
 	 *          description: Missing parameters
 	 */
-	 @Get('/all-requests', {
+	@Get('/all-requests', {
 		name: 'getAllRequests',
 		/**
 		 * Service guard services allowed to connect
@@ -83,12 +83,25 @@ export default class DeploymentService extends MoleculerDBService<
 		restricted: ['api'],
 	})
 	async getAllRequests(ctx: Context<ListRequestsParams>) {
-		let result = await this.broker.call('v1.deployment-requests.getAll', {
+		let result: any = await this.broker.call('v1.deployment-requests.getAll', {
 			status: ctx.params.status,
 			requester_address: ctx.params.requester_address,
 			limit: ctx.params.limit,
 			offset: ctx.params.offset
 		} as ListRequestsParams);
+		result.map((req: any) => {
+			let pair_ids: any[] = [];
+			let ids = req.code_ids.split(',');
+			ids.map((id: any) => {
+				if (ids.indexOf(id) % 2 === 0) {
+					pair_ids.push({
+						euphoria_code_id: id,
+						mainnet_code_id: ids[ids.indexOf(id) + 1]
+					});
+				}
+			});
+			req.code_ids = pair_ids;
+		})
 
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
@@ -123,7 +136,7 @@ export default class DeploymentService extends MoleculerDBService<
 	 *        422:
 	 *          description: Missing parameters
 	 */
-	 @Get('/details', {
+	@Get('/details', {
 		name: 'getRequestDetails',
 		/**
 		 * Service guard services allowed to connect
@@ -131,7 +144,18 @@ export default class DeploymentService extends MoleculerDBService<
 		restricted: ['api'],
 	})
 	async getRequestDetails(ctx: Context<GetRequestsParams>) {
-		let result: DeploymentRequests = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+		let pair_ids: any[] = [];
+		let result: any = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+		let ids = result.code_ids.split(',');
+			ids.map((id: any) => {
+				if (ids.indexOf(id) % 2 === 0) {
+					pair_ids.push({
+						euphoria_code_id: id,
+						mainnet_code_id: ids[ids.indexOf(id) + 1]
+					});
+				}
+			});
+			result.code_ids = pair_ids;
 
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
@@ -181,15 +205,16 @@ export default class DeploymentService extends MoleculerDBService<
 		},
 	})
 	async deployContractOnMainnet(ctx: Context<DeploymentRequest>) {
-		let requests: DeploymentRequests[] = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
-		if (requests.length === 0) {
+		let code_ids: number[] = [];
+		let request: any = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+		if (!request) {
 			const response: ResponseDto = {
 				code: ErrorCode.REQUEST_NOT_FOUND,
 				message: ErrorMessage.REQUEST_NOT_FOUND,
 				data: { request_id: ctx.params.request_id }
 			};
 			return response;
-		} else if (requests[0].status !== MainnetUploadStatus.PENDING) {
+		} else if (request.status !== MainnetUploadStatus.PENDING) {
 			const response: ResponseDto = {
 				code: ErrorCode.REQUEST_NOT_PENDING,
 				message: ErrorMessage.REQUEST_NOT_PENDING,
@@ -197,11 +222,17 @@ export default class DeploymentService extends MoleculerDBService<
 			};
 			return response;
 		}
-		for (let req of requests) {
+		let ids = request.code_ids.split(',');
+		ids.map((id: any) => {
+			if (ids.indexOf(id) % 2 === 0) {
+				code_ids.push(parseInt(id));
+			}
+		});
+		for (let id of ids) {
 			this.createJob(
 				'handle.deployment-mainnet',
 				{
-					code_id: req.euphoria_code_id,
+					code_id: id,
 				},
 				{
 					removeOnComplete: true,
@@ -260,15 +291,15 @@ export default class DeploymentService extends MoleculerDBService<
 	})
 	async rejectContractDeployment(ctx: Context<RejectDeploymentRequest>) {
 		let code_ids: number[] = [];
-		let requests: DeploymentRequests[] = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
-		if (requests.length === 0) {
+		let request: any = await this.broker.call('v1.deployment-requests.getRequests', { request_id: ctx.params.request_id });
+		if (!request) {
 			const response: ResponseDto = {
 				code: ErrorCode.REQUEST_NOT_FOUND,
 				message: ErrorMessage.REQUEST_NOT_FOUND,
 				data: { request_id: ctx.params.request_id }
 			};
 			return response;
-		} else if (requests[0].status !== MainnetUploadStatus.PENDING) {
+		} else if (request.status !== MainnetUploadStatus.PENDING) {
 			const response: ResponseDto = {
 				code: ErrorCode.REQUEST_NOT_PENDING,
 				message: ErrorMessage.REQUEST_NOT_PENDING,
@@ -276,8 +307,11 @@ export default class DeploymentService extends MoleculerDBService<
 			};
 			return response;
 		}
-		requests.map(request => {
-			code_ids.push(request.euphoria_code_id!);
+		let ids = request.code_ids.split(',');
+		ids.map((id: any) => {
+			if (ids.indexOf(id) % 2 === 0) {
+				code_ids.push(parseInt(id));
+			}
 		});
 		this.createJob(
 			'reject.deployment-mainnet',

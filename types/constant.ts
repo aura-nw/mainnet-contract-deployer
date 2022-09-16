@@ -15,7 +15,7 @@ export enum AppConstants {
 }
 
 export enum MainnetUploadStatus {
-    SUCCESS = 'Successful',
+    SUCCESS = 'Approved',
     REJECTED = 'Rejected',
     PENDING = 'Pending',
     ERROR = 'Error',
