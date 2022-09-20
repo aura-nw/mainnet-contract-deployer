@@ -106,7 +106,10 @@ export default class DeploymentService extends MoleculerDBService<
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,
-			data: result
+			data: {
+				requests: result,
+				total_count: result.length
+			}
 		};
 
 		return response;
