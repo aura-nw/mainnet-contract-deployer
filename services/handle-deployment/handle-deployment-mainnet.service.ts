@@ -15,7 +15,7 @@ export default class HandleDeploymentMainnetService extends Service {
     private callApiMixin = new CallApiMixin().start();
     private dbDeploymentRequestsMixin = dbDeploymentRequestsMixin;
     private network: Network = {} as Network;
-    private defaultGasPrice = GasPrice.fromString(AppConstants.DEFAULT_GAS_PRICE);
+    private defaultGasPrice = GasPrice.fromString(Config.DEFAULT_GAS_PRICE);
 
     public constructor(public broker: ServiceBroker) {
         super(broker);
