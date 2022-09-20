@@ -41,7 +41,6 @@ const dbBaseMixin = new DbBaseMixin({
             token_name: String,
             token_symbol: String,
             num_tokens: Number,
-            is_minted: Boolean,
         }
     },
 });

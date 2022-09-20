@@ -77,7 +77,4 @@ export class SmartContracts extends BaseEntityIncrementId {
 
     @Column({ name: 'num_tokens' })
     num_tokens: number | undefined;
-
-    @Column({ name: 'is_minted' })
-    is_minted: boolean | undefined;
 }
