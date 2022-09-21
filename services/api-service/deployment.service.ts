@@ -231,7 +231,7 @@ export default class DeploymentService extends MoleculerDBService<
 				code_ids.push(parseInt(id));
 			}
 		});
-		for (let id of ids) {
+		for (let id of code_ids) {
 			this.createJob(
 				'handle.deployment-mainnet',
 				{
