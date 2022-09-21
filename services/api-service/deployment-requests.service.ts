@@ -46,7 +46,7 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 				query += `requester_address = '${ctx.params.requester_address}'`;
 			}
 		}
-		query += ` LIMIT ${ctx.params.limit} OFFSET ${ctx.params.offset} ORDER BY request_id DESC;`;
+		query += ` ORDER BY request_id DESC LIMIT ${ctx.params.limit} OFFSET ${ctx.params.offset};`;
 		// @ts-ignore
 		const result = await this.adapter.db.query(query, { type: 'SELECT' });
 		return result;
