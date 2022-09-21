@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM node:16-alpine3.15
 
 # Working directory
 WORKDIR /app
@@ -8,7 +8,6 @@ COPY package.json package-lock.json ./
 
 # Add moleculer
 RUN npm install -g moleculer-cli
-# RUN yarn global add moleculer-cli
 
 # Add all supported transporters except kafka
 RUN npm install -g amqp \
@@ -31,6 +30,9 @@ RUN npm ci --silent
 
 # Copy source
 COPY . .
+
+# Build and cleanup
+# ENV NODE_ENV=production
 
 # build
 RUN npm run build \
