@@ -89,6 +89,12 @@ export default class DeploymentService extends MoleculerDBService<
 			limit: ctx.params.limit,
 			offset: ctx.params.offset
 		} as ListRequestsParams);
+		let total: any = await this.broker.call('v1.deployment-requests.getAll', {
+			status: '',
+			requester_address: '',
+			limit: 0,
+			offset: 0
+		} as ListRequestsParams);
 		result.map((req: any) => {
 			let pair_ids: any[] = [];
 			let ids = req.code_ids.split(',');
@@ -108,7 +114,7 @@ export default class DeploymentService extends MoleculerDBService<
 			message: ErrorMessage.SUCCESSFUL,
 			data: {
 				requests: result,
-				total_count: result.length
+				total_count: total.length
 			}
 		};
 
