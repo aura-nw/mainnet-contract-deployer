@@ -177,7 +177,7 @@ export default class HandleDeploymentMainnetService extends Service {
                 `,
             );
 
-            await this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids, status: MainnetUploadStatus.REJECTED });
+            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids, status: MainnetUploadStatus.REJECTED });
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
