@@ -232,7 +232,7 @@ export default class RequestService extends MoleculerDBService<
 			const response: ResponseDto = {
 				code: ErrorCode.CONTRACT_NOT_FOUND,
 				message: ErrorMessage.CONTRACT_NOT_FOUND,
-				data: { contracts: notFoundContracts }
+				data: { code_ids: notFoundContracts }
 			};
 			return response;
 		}
@@ -240,7 +240,7 @@ export default class RequestService extends MoleculerDBService<
 			const response: ResponseDto = {
 				code: ErrorCode.CONTRACT_ALREADY_UPLOADED,
 				message: ErrorMessage.CONTRACT_ALREADY_UPLOADED,
-				data: { contracts: deployedContracts },
+				data: { code_ids: deployedContracts },
 			};
 			return response;
 		}
@@ -248,14 +248,14 @@ export default class RequestService extends MoleculerDBService<
 			const response: ResponseDto = {
 				code: ErrorCode.CONTRACT_ALREADY_REQUESTED,
 				message: ErrorMessage.CONTRACT_ALREADY_REQUESTED,
-				data: { contracts: pendingContracts },
+				data: { code_ids: pendingContracts },
 			};
 			return response;
 		}
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.REQUEST_SUCCESSFUL,
-			data: { contracts: ctx.params.code_ids }
+			data: { code_ids: ctx.params.code_ids }
 		};
 		return response;
 	}

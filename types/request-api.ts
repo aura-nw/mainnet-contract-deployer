@@ -35,6 +35,7 @@ export interface DeploymentParams {
 
 export interface ContractDeploymentRequest {
     code_id: number;
+    request_id: number;
 }
 
 export interface HandleRequestParams {
@@ -82,6 +83,7 @@ export interface RejectDeploymentRequest {
 export interface RejectDeploymentParams {
     code_ids: number[];
     reason: string;
+    request_id: number;
 }
 
 export interface GetRequestsParams {

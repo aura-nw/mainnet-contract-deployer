@@ -87,7 +87,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
 
     async handleJob(euphoria_code_id: number, mainnet_code_id: number) {
         this.logger.info("Handle contract deployment request " + euphoria_code_id + " " + mainnet_code_id);
-        await this.adapter.updateMany({ code_id: euphoria_code_id }, { mainnet_code_id, mainnet_upload_status: MainnetUploadStatus.SUCCESS });
+        await this.adapter.updateMany({ code_id: euphoria_code_id }, { reference_code_id: mainnet_code_id, mainnet_upload_status: MainnetUploadStatus.SUCCESS });
     }
 
     async handleRejectionJob(code_ids: number[], status: string) {
