@@ -23,7 +23,7 @@ import { Context } from 'moleculer';
 })
 export default class DeploymentRequestsService extends MoleculerDBService<
 	{
-		rest: 'v1/deploymentrequests';
+		rest: 'v1/deployment-requests';
 	},
 	DeploymentRequests
 > {
