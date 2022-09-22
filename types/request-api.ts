@@ -30,7 +30,6 @@ export interface DeploymentRequest {
 
 export interface DeploymentParams {
     code_ids: number[];
-    status: string;
 }
 
 export interface ContractDeploymentRequest {

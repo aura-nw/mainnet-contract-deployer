@@ -150,7 +150,6 @@ export default class HandleDeploymentMainnetService extends Service {
                     status: MainnetUploadStatus.ERROR,
                 }
             );
-            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids: [code_id], status: MainnetUploadStatus.ERROR });
         }
     }
 
@@ -177,7 +176,7 @@ export default class HandleDeploymentMainnetService extends Service {
                 `,
             );
 
-            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids, status: MainnetUploadStatus.REJECTED });
+            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids });
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
@@ -189,7 +188,6 @@ export default class HandleDeploymentMainnetService extends Service {
                     status: MainnetUploadStatus.ERROR,
                 }
             );
-            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids, status: MainnetUploadStatus.ERROR });
         }
     }
 
