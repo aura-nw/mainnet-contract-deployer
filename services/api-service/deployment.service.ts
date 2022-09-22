@@ -89,6 +89,12 @@ export default class DeploymentService extends MoleculerDBService<
 			limit: ctx.params.limit,
 			offset: ctx.params.offset
 		} as ListRequestsParams);
+		let total: any = await this.broker.call('v1.deployment-requests.getAll', {
+			status: '',
+			requester_address: '',
+			limit: 0,
+			offset: 0
+		} as ListRequestsParams);
 		result.map((req: any) => {
 			let pair_ids: any[] = [];
 			let ids = req.code_ids.split(',');
@@ -106,7 +112,10 @@ export default class DeploymentService extends MoleculerDBService<
 		const response: ResponseDto = {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,
-			data: result
+			data: {
+				requests: result,
+				total_count: total.length
+			}
 		};
 
 		return response;
@@ -228,11 +237,12 @@ export default class DeploymentService extends MoleculerDBService<
 				code_ids.push(parseInt(id));
 			}
 		});
-		for (let id of ids) {
+		for (let id of code_ids) {
 			this.createJob(
 				'handle.deployment-mainnet',
 				{
 					code_id: id,
+					request_id: ctx.params.request_id,
 				},
 				{
 					removeOnComplete: true,
@@ -318,6 +328,7 @@ export default class DeploymentService extends MoleculerDBService<
 			{
 				code_ids,
 				reason: ctx.params.reason,
+				request_id: ctx.params.request_id,
 			},
 			{
 				removeOnComplete: true,

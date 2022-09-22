@@ -149,37 +149,38 @@ export default class HandleRequestMainnetService extends Service {
         s3_location: string,
         request_id: number
     ) {
-        let deploymentRequest = new DeploymentRequests();
-        deploymentRequest.name = name;
-        deploymentRequest.email = email;
-        deploymentRequest.contract_description = contract_description;
-        deploymentRequest.project_name = project_name;
-        deploymentRequest.official_project_website = official_project_website;
-        deploymentRequest.official_project_email = official_project_email;
-        deploymentRequest.project_sector = project_sector;
-        deploymentRequest.whitepaper = whitepaper;
-        deploymentRequest.github = github;
-        deploymentRequest.telegram = telegram;
-        deploymentRequest.wechat = wechat;
-        deploymentRequest.linkedin = linkedin;
-        deploymentRequest.discord = discord;
-        deploymentRequest.medium = medium;
-        deploymentRequest.reddit = reddit;
-        deploymentRequest.slack = slack;
-        deploymentRequest.facebook = facebook;
-        deploymentRequest.twitter = twitter;
-        deploymentRequest.bitcointalk = bitcointalk;
-        deploymentRequest.euphoria_code_id = code_id,
-        deploymentRequest.contract_hash = contract_hash;
-        deploymentRequest.url = url;
-        deploymentRequest.instantiate_msg_schema = instantiate_msg_schema;
-        deploymentRequest.query_msg_schema = query_msg_schema;
-        deploymentRequest.execute_msg_schema = execute_msg_schema;
-        deploymentRequest.compiler_version = compiler_version;
-        deploymentRequest.s3_location = s3_location;
-        deploymentRequest.status = MainnetUploadStatus.PENDING;
-        deploymentRequest.request_id = request_id;
-        deploymentRequest.requester_address = requester_address;
+        let deploymentRequest = {
+            name,
+            email,
+            contract_description,
+            project_name,
+            official_project_website,
+            official_project_email,
+            project_sector,
+            whitepaper,
+            github,
+            telegram,
+            wechat,
+            linkedin,
+            discord,
+            medium,
+            reddit,
+            slack,
+            facebook,
+            twitter,
+            bitcointalk,
+            euphoria_code_id: code_id,
+            contract_hash,
+            url,
+            instantiate_msg_schema,
+            query_msg_schema,
+            execute_msg_schema,
+            compiler_version,
+            s3_location,
+            status: MainnetUploadStatus.PENDING,
+            request_id,
+            requester_address,
+        }
         await this.adapter.insert(deploymentRequest);
     }
 

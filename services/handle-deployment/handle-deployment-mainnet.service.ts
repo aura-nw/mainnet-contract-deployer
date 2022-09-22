@@ -39,7 +39,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleJob(job.data.code_id);
+                        await this.handleJob(job.data.code_id, job.data.request_id);
                         job.progress(100);
                         return true;
                     },
@@ -49,7 +49,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleRejectionJob(job.data.code_ids, job.data.reason);
+                        await this.handleRejectionJob(job.data.code_ids, job.data.reason, job.data.request_id);
                         job.progress(100);
                         return true;
                     },
@@ -64,6 +64,7 @@ export default class HandleDeploymentMainnetService extends Service {
                             'handle.deployment-mainnet',
                             {
                                 code_id: ctx.params.code_id,
+                                request_id: ctx.params.request_id,
                             },
                             {
                                 removeOnComplete: true,
@@ -80,6 +81,7 @@ export default class HandleDeploymentMainnetService extends Service {
                             {
                                 code_ids: ctx.params.code_ids,
                                 reason: ctx.params.reason,
+                                request_id: ctx.params.request_id,
                             },
                             {
                                 removeOnComplete: true,
@@ -91,7 +93,7 @@ export default class HandleDeploymentMainnetService extends Service {
         })
     }
 
-    async handleJob(code_id: number) {
+    async handleJob(code_id: number, request_id: number) {
         try {
             const client = await CosmWasmClient.connect(Config.BASE_RPC);
             const codeDetails = await client.getCodeDetails(code_id);
@@ -116,7 +118,10 @@ export default class HandleDeploymentMainnetService extends Service {
             this.logger.info('Code id:', codeId);
 
             await this.adapter.updateMany(
-                { euphoria_code_id: code_id },
+                { 
+                    request_id,
+                    status: MainnetUploadStatus.PENDING,
+                },
                 {
                     mainnet_code_id: codeId,
                     status: MainnetUploadStatus.SUCCESS,
@@ -137,19 +142,24 @@ export default class HandleDeploymentMainnetService extends Service {
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
-                { euphoria_code_id: code_id },
+                { 
+                    request_id,
+                    status: MainnetUploadStatus.PENDING,
+                },
                 {
                     status: MainnetUploadStatus.ERROR,
                 }
             );
-            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids: [code_id], status: MainnetUploadStatus.ERROR });
         }
     }
 
-    async handleRejectionJob(code_ids: number[], reason: string) {
+    async handleRejectionJob(code_ids: number[], reason: string, request_id: number) {
         try {
             await this.adapter.updateMany(
-                { euphoria_code_id: [...code_ids] },
+                { 
+                    request_id,
+                    status: MainnetUploadStatus.PENDING,
+                },
                 {
                     status: MainnetUploadStatus.REJECTED,
                     reason,
@@ -166,16 +176,18 @@ export default class HandleDeploymentMainnetService extends Service {
                 `,
             );
 
-            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids, status: MainnetUploadStatus.REJECTED });
+            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids });
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
-                { euphoria_code_id: code_ids },
+                { 
+                    request_id,
+                    status: MainnetUploadStatus.PENDING,
+                },
                 {
                     status: MainnetUploadStatus.ERROR,
                 }
             );
-            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids, status: MainnetUploadStatus.ERROR });
         }
     }
 
