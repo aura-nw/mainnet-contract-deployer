@@ -3,6 +3,7 @@ import { DeploymentRequests } from "../../entities";
 import { Context } from "moleculer";
 import { ErrorCode, ErrorMessage, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto } from "../../types";
 import { Config } from "common";
+import { callApiMixin } from "../../mixins/callApi/call-api.mixin";
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -13,7 +14,7 @@ import { Config } from "common";
 	/**
 	 * Mixins
 	 */
-	mixins: [],
+	mixins: [callApiMixin],
 	/**
 	 * Settings
 	 */
