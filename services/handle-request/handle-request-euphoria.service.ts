@@ -2,7 +2,7 @@ import CallApiMixin from "../../mixins/callApi/call-api.mixin";
 import { Context, Service, ServiceBroker } from "moleculer";
 import { Job } from "bull";
 import { Config } from "../../common";
-import { ContractDeploymentRequest, MainnetUploadStatus } from "../../types";
+import { ContractDeploymentRequest, ContractStatus, MainnetUploadStatus } from "../../types";
 import { SmartContracts } from "../../entities";
 import { dbSmartContractsMixin } from "../../mixins/dbMixins";
 const QueueService = require('moleculer-bull');
@@ -61,7 +61,7 @@ export default class HandleRequestEuphoriaService extends Service {
     }
 
     async handleJob(code_id: number) {
-        await this.adapter.updateMany({ code_id }, { mainnet_upload_status: MainnetUploadStatus.PENDING });
+        await this.adapter.updateMany({ code_id }, { mainnet_upload_status: ContractStatus.TBD });
     }
 
     async _start() {

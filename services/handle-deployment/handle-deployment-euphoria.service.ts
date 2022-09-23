@@ -2,7 +2,7 @@ import CallApiMixin from "../../mixins/callApi/call-api.mixin";
 import { Context, Service, ServiceBroker } from "moleculer";
 import { Job } from "bull";
 import { Config } from "../../common";
-import { DeploymentParams, DeploymentRequest, MainnetUploadStatus, UpdateContractStatusRequest } from "../../types";
+import { ContractStatus, DeploymentParams, DeploymentRequest, MainnetUploadStatus, UpdateContractStatusRequest } from "../../types";
 import { dbSmartContractsMixin } from "../../mixins/dbMixins";
 const QueueService = require('moleculer-bull');
 
@@ -86,11 +86,11 @@ export default class HandleDeploymentEuphoriaService extends Service {
 
     async handleJob(euphoria_code_id: number, mainnet_code_id: number) {
         this.logger.info("Handle contract deployment request " + euphoria_code_id + " " + mainnet_code_id);
-        await this.adapter.updateMany({ code_id: euphoria_code_id }, { reference_code_id: mainnet_code_id, mainnet_upload_status: MainnetUploadStatus.SUCCESS });
+        await this.adapter.updateMany({ code_id: euphoria_code_id }, { reference_code_id: mainnet_code_id, mainnet_upload_status: ContractStatus.DEPLOYED });
     }
 
     async handleRejectionJob(code_ids: number[]) {
-        await this.adapter.updateMany({ code_id: [...code_ids] }, { mainnet_upload_status: MainnetUploadStatus.REJECTED });
+        await this.adapter.updateMany({ code_id: [...code_ids] }, { mainnet_upload_status: ContractStatus.REJECTED });
     }
 
     async _start() {

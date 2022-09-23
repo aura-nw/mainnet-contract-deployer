@@ -31,3 +31,11 @@ export enum AppConstants {
     NOT_AUTHORIZED_EXEPTION = 'NotAuthorizedException',
     NEW_PASS_REQUIRED = 'callback.newPasswordRequired is not a function',
 }
+
+export enum ContractStatus {
+    UNVERIFIED = 'Unverified',
+    NOT_REGISTERED = 'Not registered',
+    TBD = 'TBD',
+    DEPLOYED = 'Deployed',
+    REJECTED = 'Rejected',
+  }
