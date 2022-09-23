@@ -262,7 +262,7 @@ export default class RequestService extends MoleculerDBService<
 			const response: ResponseDto = {
 				code: ErrorCode.WRONG_CREATOR,
 				message: ErrorMessage.WRONG_CREATOR,
-				data: { code_ids: pendingContracts },
+				data: { code_ids: wrongCreatorContracts },
 			};
 			return response;
 		}
