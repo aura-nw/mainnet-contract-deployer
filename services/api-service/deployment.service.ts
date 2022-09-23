@@ -243,6 +243,7 @@ export default class DeploymentService extends MoleculerDBService<
 				{
 					code_id: id,
 					request_id: ctx.params.request_id,
+					creator_address: request.requester_address
 				},
 				{
 					removeOnComplete: true,
@@ -329,6 +330,7 @@ export default class DeploymentService extends MoleculerDBService<
 				code_ids,
 				reason: ctx.params.reason,
 				request_id: ctx.params.request_id,
+				creator_address: request.requester_address
 			},
 			{
 				removeOnComplete: true,

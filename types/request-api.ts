@@ -30,10 +30,12 @@ export interface DeploymentRequest {
 
 export interface DeploymentParams {
     code_ids: number[];
+    creator_address: string;
 }
 
 export interface ContractDeploymentRequest {
     code_id: number;
+    creator_address: string;
     request_id: number;
 }
 
@@ -72,6 +74,7 @@ export interface HandleRequestParams {
 export interface UpdateContractStatusRequest {
     euphoria_code_id: number;
     mainnet_code_id: number;
+    creator_address: string;
 }
 
 export interface RejectDeploymentRequest {

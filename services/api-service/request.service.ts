@@ -194,7 +194,7 @@ export default class RequestService extends MoleculerDBService<
 				let execute_msg_schema = result.execute_msg_schema;
 				let compiler_version = result.compiler_version;
 				let s3_location = result.s3_location;
-				this.broker.call('v1.handleRequestEuphoria.updatestatus', { code_id });
+				this.broker.call('v1.handleRequestEuphoria.updatestatus', { code_id, creator_address: requester_address });
 				this.broker.call('v1.handleRequestMainnet.updatestatus', {
 					code_id,
 					requester_address,

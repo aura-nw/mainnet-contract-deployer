@@ -32,7 +32,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleJob(job.data.euphoria_code_id, job.data.mainnet_code_id);
+                        await this.handleJob(job.data.euphoria_code_id, job.data.mainnet_code_id, job.data.creator_address);
                         job.progress(100);
                         return true;
                     },
@@ -42,7 +42,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleRejectionJob(job.data.code_ids);
+                        await this.handleRejectionJob(job.data.code_ids, job.data.creator_address);
                         job.progress(100);
                         return true;
                     },
@@ -58,6 +58,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
                             {
                                 euphoria_code_id: ctx.params.euphoria_code_id,
                                 mainnet_code_id: ctx.params.mainnet_code_id,
+                                creator_address: ctx.params.creator_address,
                             },
                             {
                                 removeOnComplete: true,
@@ -72,7 +73,8 @@ export default class HandleDeploymentEuphoriaService extends Service {
                         this.createJob(
                             'reject.deployment-euphoria',
                             {
-                                code_ids: ctx.params.code_ids
+                                code_ids: ctx.params.code_ids,
+                                creator_address: ctx.params.creator_address,
                             },
                             {
                                 removeOnComplete: true,
@@ -84,13 +86,13 @@ export default class HandleDeploymentEuphoriaService extends Service {
         })
     }
 
-    async handleJob(euphoria_code_id: number, mainnet_code_id: number) {
+    async handleJob(euphoria_code_id: number, mainnet_code_id: number, creator_address: string) {
         this.logger.info("Handle contract deployment request " + euphoria_code_id + " " + mainnet_code_id);
-        await this.adapter.updateMany({ code_id: euphoria_code_id }, { reference_code_id: mainnet_code_id, mainnet_upload_status: ContractStatus.DEPLOYED });
+        await this.adapter.updateMany({ code_id: euphoria_code_id, creator_address }, { reference_code_id: mainnet_code_id, mainnet_upload_status: ContractStatus.DEPLOYED });
     }
 
-    async handleRejectionJob(code_ids: number[]) {
-        await this.adapter.updateMany({ code_id: [...code_ids] }, { mainnet_upload_status: ContractStatus.REJECTED });
+    async handleRejectionJob(code_ids: number[], creator_address: string) {
+        await this.adapter.updateMany({ code_id: [...code_ids], creator_address }, { mainnet_upload_status: ContractStatus.REJECTED });
     }
 
     async _start() {
