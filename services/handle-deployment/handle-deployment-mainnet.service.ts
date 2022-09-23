@@ -39,7 +39,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleJob(job.data.code_id, job.data.request_id);
+                        await this.handleJob(job.data.code_id, job.data.request_id, job.data.creator_address);
                         job.progress(100);
                         return true;
                     },
@@ -49,7 +49,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleRejectionJob(job.data.code_ids, job.data.reason, job.data.request_id);
+                        await this.handleRejectionJob(job.data.code_ids, job.data.reason, job.data.request_id, job.data.creator_address);
                         job.progress(100);
                         return true;
                     },
@@ -93,7 +93,7 @@ export default class HandleDeploymentMainnetService extends Service {
         })
     }
 
-    async handleJob(code_id: number, request_id: number) {
+    async handleJob(code_id: number, request_id: number, creator_address: string) {
         try {
             const client = await CosmWasmClient.connect(Config.BASE_RPC);
             const codeDetails = await client.getCodeDetails(code_id);
@@ -138,7 +138,7 @@ export default class HandleDeploymentMainnetService extends Service {
             `,
             );
 
-            this.broker.call('v1.handleDeploymentEuphoria.executedeployment', { euphoria_code_id: code_id, mainnet_code_id: codeId });
+            this.broker.call('v1.handleDeploymentEuphoria.executedeployment', { euphoria_code_id: code_id, mainnet_code_id: codeId, creator_address });
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
@@ -153,7 +153,7 @@ export default class HandleDeploymentMainnetService extends Service {
         }
     }
 
-    async handleRejectionJob(code_ids: number[], reason: string, request_id: number) {
+    async handleRejectionJob(code_ids: number[], reason: string, request_id: number, creator_address: string) {
         try {
             await this.adapter.updateMany(
                 { 
@@ -176,7 +176,7 @@ export default class HandleDeploymentMainnetService extends Service {
                 `,
             );
 
-            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids });
+            this.broker.call('v1.handleDeploymentEuphoria.rejectdeployment', { code_ids, creator_address });
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(

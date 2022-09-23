@@ -33,7 +33,7 @@ export default class HandleRequestEuphoriaService extends Service {
                     process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        this.handleJob(job.data.code_id);
+                        this.handleJob(job.data.code_id, job.data.creator_address);
                         job.progress(100);
                         return true;
                     },
@@ -49,6 +49,7 @@ export default class HandleRequestEuphoriaService extends Service {
                             'handle.request-euphoria',
                             {
                                 code_id: ctx.params.code_id,
+                                creator_address: ctx.params.creator_address,
                             },
                             {
                                 removeOnComplete: true,
@@ -60,8 +61,8 @@ export default class HandleRequestEuphoriaService extends Service {
         })
     }
 
-    async handleJob(code_id: number) {
-        await this.adapter.updateMany({ code_id }, { mainnet_upload_status: ContractStatus.TBD });
+    async handleJob(code_id: number, creator_address: string) {
+        await this.adapter.updateMany({ code_id, creator_address }, { mainnet_upload_status: ContractStatus.TBD });
     }
 
     async _start() {
