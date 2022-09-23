@@ -2,7 +2,7 @@ import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extend
 import { DeploymentRequests } from "../../entities";
 import { Context } from "moleculer";
 import { ErrorCode, ErrorMessage, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto } from "../../types";
-import { Config } from "common";
+import { Config } from "../../common";
 import { callApiMixin } from "../../mixins/callApi/call-api.mixin";
 
 /**
@@ -182,7 +182,7 @@ export default class RequestService extends MoleculerDBService<
 		let request_id = currentRequestId + 1;
 		await Promise.all(ctx.params.code_ids.map(async (code_id) => {
 			let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id });
-			let resultCallApi = await this.callApiFromDomain(Config.BASE_LCD, Config.PARAM_CODE_ID + code_id);
+			let resultCallApi = await this.callApiFromDomain([Config.BASE_LCD], Config.PARAM_CODE_ID + code_id);
 
 			if (!result) {
 				notFoundContracts.push(code_id);
