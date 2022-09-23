@@ -2,6 +2,7 @@ import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extend
 import { DeploymentRequests } from "../../entities";
 import { Context } from "moleculer";
 import { ErrorCode, ErrorMessage, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto } from "../../types";
+import { Config } from "common";
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -152,9 +153,10 @@ export default class RequestService extends MoleculerDBService<
 		},
 	})
 	async requestContractDeployment(ctx: Context<RequestDeploymentParams>) {
-		let notFoundContracts: number[] = [];
-		let deployedContracts: number[] = [];
-		let pendingContracts: number[] = [];
+		let notFoundContracts: number[] = [],
+			deployedContracts: number[] = [],
+			pendingContracts: number[] = [],
+			wrongCreatorContracts: number[] = [];
 		let requester_address = ctx.params.requester_address;
 		let name = ctx.params.name;
 		let email = ctx.params.email;
@@ -179,6 +181,7 @@ export default class RequestService extends MoleculerDBService<
 		let request_id = currentRequestId + 1;
 		await Promise.all(ctx.params.code_ids.map(async (code_id) => {
 			let result: any = await this.broker.call('v1.smart-contracts.getVerifiedContract', { code_id });
+			let resultCallApi = await this.callApiFromDomain(Config.BASE_LCD, Config.PARAM_CODE_ID + code_id);
 
 			if (!result) {
 				notFoundContracts.push(code_id);
@@ -186,6 +189,8 @@ export default class RequestService extends MoleculerDBService<
 				deployedContracts.push(code_id);
 			} else if (result.mainnet_upload_status === MainnetUploadStatus.PENDING) {
 				pendingContracts.push(code_id);
+			} else if (resultCallApi.code_info.creator !== requester_address) {
+				wrongCreatorContracts.push(code_id);
 			} else {
 				let contract_hash = result.contract_hash;
 				let url = result.url;
@@ -248,6 +253,14 @@ export default class RequestService extends MoleculerDBService<
 			const response: ResponseDto = {
 				code: ErrorCode.CONTRACT_ALREADY_REQUESTED,
 				message: ErrorMessage.CONTRACT_ALREADY_REQUESTED,
+				data: { code_ids: pendingContracts },
+			};
+			return response;
+		}
+		if (wrongCreatorContracts.length > 0) {
+			const response: ResponseDto = {
+				code: ErrorCode.WRONG_CREATOR,
+				message: ErrorMessage.WRONG_CREATOR,
 				data: { code_ids: pendingContracts },
 			};
 			return response;

@@ -23,6 +23,7 @@ export enum ErrorMessage {
 	CONTRACT_ALREADY_REQUESTED = 'Contract(s) already being requested to upload',
 	REQUEST_NOT_FOUND = 'Request not found',
 	REQUEST_NOT_PENDING = 'This request is not pending',
+	WRONG_CREATOR = 'You are not the creator of this contract',
 }
 
 export const ErrorCode = {
@@ -44,4 +45,5 @@ export const ErrorCode = {
 	CONTRACT_ALREADY_REQUESTED: 'E009',
 	REQUEST_NOT_FOUND: 'E010',
 	REQUEST_NOT_PENDING: 'E011',
+	WRONG_CREATOR: 'E012',
 };
