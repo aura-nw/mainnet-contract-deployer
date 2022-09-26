@@ -36,7 +36,7 @@ const dbBaseMixin = new DbBaseMixin({
             contract_verification: String,
             compiler_version: String,
             s3_location: String,
-            reference_code_id: String,
+            reference_code_id: Number,
             mainnet_upload_status: String,
             token_name: String,
             token_symbol: String,
