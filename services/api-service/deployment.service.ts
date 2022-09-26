@@ -223,7 +223,8 @@ export default class DeploymentService extends MoleculerDBService<
 				data: { request_id: ctx.params.request_id }
 			};
 			return response;
-		} else if (request.status !== MainnetUploadStatus.PENDING) {
+		} else if (request.status !== MainnetUploadStatus.PENDING 
+			&& request.status !== MainnetUploadStatus.ERROR) {
 			const response: ResponseDto = {
 				code: ErrorCode.REQUEST_NOT_PENDING,
 				message: ErrorMessage.REQUEST_NOT_PENDING,

@@ -1,7 +1,7 @@
 import { Get, Post, Service } from "@ourparentcenter/moleculer-decorators-extended";
 import { DeploymentRequests } from "../../entities";
 import { Context } from "moleculer";
-import { ErrorCode, ErrorMessage, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto } from "../../types";
+import { ContractStatus, ErrorCode, ErrorMessage, GetRequestsParams, ListRequestsParams, MainnetUploadStatus, MoleculerDBService, RequestDeploymentParams, ResponseDto } from "../../types";
 import { Config } from "../../common";
 import { callApiMixin } from "../../mixins/callApi/call-api.mixin";
 
@@ -186,9 +186,9 @@ export default class RequestService extends MoleculerDBService<
 
 			if (!result) {
 				notFoundContracts.push(code_id);
-			} else if (result.mainnet_upload_status === MainnetUploadStatus.SUCCESS) {
+			} else if (result.mainnet_upload_status === ContractStatus.DEPLOYED) {
 				deployedContracts.push(code_id);
-			} else if (result.mainnet_upload_status === MainnetUploadStatus.PENDING) {
+			} else if (result.mainnet_upload_status === ContractStatus.TBD) {
 				pendingContracts.push(code_id);
 			} else if (resultCallApi.code_info.creator !== requester_address) {
 				wrongCreatorContracts.push(code_id);
