@@ -1,4 +1,4 @@
-import { Config } from 'common';
+import { Config } from '../common';
 import * as firebase from 'firebase';
 
 export class FirebaseAuthProvider {
