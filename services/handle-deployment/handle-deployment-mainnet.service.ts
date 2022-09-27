@@ -119,7 +119,7 @@ export default class HandleDeploymentMainnetService extends Service {
 
             await this.adapter.updateMany(
                 { 
-                    request_id,
+                    euphoria_code_id: code_id,
                     status: MainnetUploadStatus.PENDING,
                 },
                 {

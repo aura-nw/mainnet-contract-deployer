@@ -67,7 +67,7 @@ export default class AuthService extends MoleculerDBService<
     })
     async login(ctx: Context<LoginRequest>) {
         let { email, password } = ctx.params;
-        if (email != Config.APPROVER_EMAIL) {
+        if (!Config.APPROVER_EMAILS.split(',').includes(email)) {
             const response: ResponseDto = {
                 code: ErrorCode.INVALID_EMAIL,
                 message: ErrorMessage.INVALID_EMAIL,
