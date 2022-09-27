@@ -13,6 +13,7 @@ import pick from 'lodash/pick';
 import { openAPIMixin } from '../../mixins/openapi/openapi.mixin';
 import { Config } from '../../common';
 import {
+	AppConstants,
 	RequestMessage,
 } from '../../types';
 import swStats from 'swagger-stats';
@@ -297,6 +298,8 @@ export default class ApiService extends moleculer.Service {
 		route: any,
 		req: RequestMessage,
 	): Promise<unknown> {
+		const approverEmails = Config.APPROVER_EMAILS.split(',');
+
 		const auth = req.headers.authorization;
 
 		if (auth) {
@@ -311,6 +314,12 @@ export default class ApiService extends moleculer.Service {
 					const pubkey = await axios.get(Config.JWT_PUBLIC_KEY);
 					let jwt = require('jsonwebtoken');
 					const decoded = jwt.decode(token, { complete: true });
+					if (decoded && decoded.email && !approverEmails.includes(decoded.email)) {
+						return Promise.reject(new ApiGateway.Errors.UnAuthorizedError(
+							AppConstants.NOT_AUTHORIZED_EXEPTION,
+							'Your email is not authorized to access this service'
+						));
+					}
 					const verified = jwt.verify(token, pubkey.data[decoded.header.kid]);
 					return verified;
 				} catch (error) {
