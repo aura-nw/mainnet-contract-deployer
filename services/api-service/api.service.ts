@@ -298,7 +298,8 @@ export default class ApiService extends moleculer.Service {
 		route: any,
 		req: RequestMessage,
 	): Promise<unknown> {
-		const approverEmails = Config.APPROVER_EMAILS.split(',');
+		let approverEmails = Config.APPROVER_EMAILS;
+		approverEmails = approverEmails.split(',');
 
 		const auth = req.headers.authorization;
 
@@ -314,7 +315,7 @@ export default class ApiService extends moleculer.Service {
 					const pubkey = await axios.get(Config.JWT_PUBLIC_KEY);
 					let jwt = require('jsonwebtoken');
 					const decoded = jwt.decode(token, { complete: true });
-					if (!approverEmails.includes(decoded.email)) {
+					if (!approverEmails.includes(decoded.payload.email)) {
 						console.log('Account not authorized');
 						return Promise.reject(new ApiGateway.Errors.UnAuthorizedError(
 							AppConstants.NOT_AUTHORIZED_EXEPTION,
