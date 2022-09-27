@@ -69,14 +69,14 @@ export default class AuthService extends MoleculerDBService<
         let { email, password } = ctx.params;
         let approverEmails = Config.APPROVER_EMAILS;
 		approverEmails = approverEmails.split(',');
-        if (!approverEmails.includes(email)) {
-            const response: ResponseDto = {
-                code: ErrorCode.INVALID_EMAIL,
-                message: ErrorMessage.INVALID_EMAIL,
-                data: ctx.params,
-            };
-            return response;
-        }
+        // if (!approverEmails.includes(email)) {
+        //     const response: ResponseDto = {
+        //         code: ErrorCode.INVALID_EMAIL,
+        //         message: ErrorMessage.INVALID_EMAIL,
+        //         data: ctx.params,
+        //     };
+        //     return response;
+        // }
         let firebaseAuthProvider = new FirebaseAuthProvider();
         try {
             const result = await firebaseAuthProvider.signin(email, password);
