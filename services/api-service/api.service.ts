@@ -314,7 +314,8 @@ export default class ApiService extends moleculer.Service {
 					const pubkey = await axios.get(Config.JWT_PUBLIC_KEY);
 					let jwt = require('jsonwebtoken');
 					const decoded = jwt.decode(token, { complete: true });
-					if (decoded && decoded.email && !approverEmails.includes(decoded.email)) {
+					if (!approverEmails.includes(decoded.email)) {
+						console.log('Account not authorized');
 						return Promise.reject(new ApiGateway.Errors.UnAuthorizedError(
 							AppConstants.NOT_AUTHORIZED_EXEPTION,
 							'Your email is not authorized to access this service'
