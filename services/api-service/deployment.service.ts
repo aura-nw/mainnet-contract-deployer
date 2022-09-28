@@ -90,8 +90,8 @@ export default class DeploymentService extends MoleculerDBService<
 			offset: ctx.params.offset
 		} as ListRequestsParams);
 		let total: any = await this.broker.call('v1.deployment-requests.getAll', {
-			status: '',
-			requester_address: '',
+			status: ctx.params.status,
+			requester_address: ctx.params.requester_address,
 			limit: 0,
 			offset: 0
 		} as ListRequestsParams);
