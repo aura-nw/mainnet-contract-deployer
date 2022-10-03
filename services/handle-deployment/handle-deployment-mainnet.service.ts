@@ -10,6 +10,7 @@ import { GasPrice, StdFee } from '@cosmjs/stargate';
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 const QueueService = require('moleculer-bull');
 const nodemailer = require("nodemailer");
+import QueueConfig from '../../common/queue';
 
 export default class HandleDeploymentMainnetService extends Service {
     private callApiMixin = new CallApiMixin().start();
@@ -23,12 +24,7 @@ export default class HandleDeploymentMainnetService extends Service {
             name: 'handleDeploymentMainnet',
             version: 1,
             mixins: [
-                QueueService(
-                    `redis://${Config.REDIS_USERNAME}:${Config.REDIS_PASSWORD}@${Config.REDIS_HOST}:${Config.REDIS_PORT}/${Config.REDIS_DB_NUMBER}`,
-                    {
-                        prefix: 'handle.deployment-mainnet',
-                    },
-                ),
+                QueueService(QueueConfig.redis, QueueConfig.opts),
                 // this.redisMixin,
                 this.dbDeploymentRequestsMixin,
                 this.callApiMixin,
@@ -117,10 +113,17 @@ export default class HandleDeploymentMainnetService extends Service {
             const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
             this.logger.info('Code id:', codeId);
 
+            const request: DeploymentRequests = await this.adapter.findOne({ 
+                where: { 
+                    euphoria_code_id: code_id,
+                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING]
+                } 
+            });
+
             await this.adapter.updateMany(
                 { 
                     euphoria_code_id: code_id,
-                    status: MainnetUploadStatus.PENDING,
+                    status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
                 },
                 {
                     mainnet_code_id: codeId,
@@ -128,7 +131,6 @@ export default class HandleDeploymentMainnetService extends Service {
                 }
             );
 
-            const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_id } });
             await this.sendEmail(
                 request.email,
                 'Contract upload on Mainnet successful!',
@@ -144,7 +146,6 @@ export default class HandleDeploymentMainnetService extends Service {
             await this.adapter.updateMany(
                 { 
                     request_id,
-                    status: MainnetUploadStatus.PENDING,
                 },
                 {
                     status: MainnetUploadStatus.ERROR,
@@ -155,10 +156,17 @@ export default class HandleDeploymentMainnetService extends Service {
 
     async handleRejectionJob(code_ids: number[], reason: string, request_id: number, creator_address: string) {
         try {
+            const request: DeploymentRequests = await this.adapter.findOne({ 
+                where: { 
+                    euphoria_code_id: code_ids[0],
+                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING]
+                } 
+            });
+
             await this.adapter.updateMany(
                 { 
                     request_id,
-                    status: MainnetUploadStatus.PENDING,
+                    status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
                 },
                 {
                     status: MainnetUploadStatus.REJECTED,
@@ -166,7 +174,6 @@ export default class HandleDeploymentMainnetService extends Service {
                 }
             );
 
-            const request: DeploymentRequests = await this.adapter.findOne({ where: { euphoria_code_id: code_ids[0] } });
             await this.sendEmail(
                 request.email,
                 'Request upload contract on Mainnet rejected!',
@@ -182,7 +189,6 @@ export default class HandleDeploymentMainnetService extends Service {
             await this.adapter.updateMany(
                 { 
                     request_id,
-                    status: MainnetUploadStatus.PENDING,
                 },
                 {
                     status: MainnetUploadStatus.ERROR,
