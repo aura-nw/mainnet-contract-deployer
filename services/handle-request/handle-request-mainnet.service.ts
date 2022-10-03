@@ -6,6 +6,7 @@ import { ContractVerification, HandleRequestParams, MainnetUploadStatus } from "
 import { dbDeploymentRequestsMixin } from "../../mixins/dbMixins";
 import { DeploymentRequests } from "entities";
 const QueueService = require('moleculer-bull');
+import QueueConfig from '../../common/queue';
 
 export default class HandleRequestMainnetService extends Service {
     private callApiMixin = new CallApiMixin().start();
@@ -17,12 +18,7 @@ export default class HandleRequestMainnetService extends Service {
             name: 'handleRequestMainnet',
             version: 1,
             mixins: [
-                QueueService(
-                    `redis://${Config.REDIS_USERNAME}:${Config.REDIS_PASSWORD}@${Config.REDIS_HOST}:${Config.REDIS_PORT}/${Config.REDIS_DB_NUMBER}`,
-                    {
-                        prefix: 'handle.request-mainnet',
-                    },
-                ),
+                QueueService(QueueConfig.redis, QueueConfig.opts),
                 // this.redisMixin,
                 this.dbDeploymentRequestsMixin,
                 this.callApiMixin,

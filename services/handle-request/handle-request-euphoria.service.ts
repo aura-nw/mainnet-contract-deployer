@@ -6,6 +6,7 @@ import { ContractDeploymentRequest, ContractStatus, MainnetUploadStatus } from "
 import { SmartContracts } from "../../entities";
 import { dbSmartContractsMixin } from "../../mixins/dbMixins";
 const QueueService = require('moleculer-bull');
+import QueueConfig from '../../common/queue';
 
 export default class HandleRequestEuphoriaService extends Service {
     private callApiMixin = new CallApiMixin().start();
@@ -17,12 +18,7 @@ export default class HandleRequestEuphoriaService extends Service {
             name: 'handleRequestEuphoria',
             version: 1,
             mixins: [
-                QueueService(
-                    `redis://${Config.REDIS_USERNAME}:${Config.REDIS_PASSWORD}@${Config.REDIS_HOST}:${Config.REDIS_PORT}/${Config.REDIS_DB_NUMBER}`,
-                    {
-                        prefix: 'handle.request-euphoria',
-                    },
-                ),
+                QueueService(QueueConfig.redis, QueueConfig.opts),
                 // this.redisMixin,
                 this.dbSmartContractsMixin,
                 this.callApiMixin,
