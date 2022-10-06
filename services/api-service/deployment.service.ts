@@ -230,7 +230,7 @@ export default class DeploymentService extends MoleculerDBService<
 		}
 		let ids = request.code_ids.split(',');
 		ids.map((id: any) => {
-			if (ids.indexOf(id) % 2 === 0) {
+			if (ids.indexOf(id) % 2 === 0 && ids.indexOf(id + 1) === 0) {
 				code_ids.push(parseInt(id));
 			}
 		});
