@@ -94,18 +94,14 @@ export class Network extends CosmWasmClient {
         const accountFromSigner = account;
         const pubkey = encodeSecp256k1Pubkey(accountFromSigner.pubkey);
         const { sequence } = await this.getSequence(signerAddress);
-        try {
-            const { gasInfo } = await this.forceGetQueryClient().tx.simulate(
-                anyMsgs,
-                memo,
-                pubkey,
-                sequence,
-            );
-            assertDefined(gasInfo);
-            return Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
-        } catch (error: any) {
-            this.handleError(error);
-        }
+        const { gasInfo } = await this.forceGetQueryClient().tx.simulate(
+            anyMsgs,
+            memo,
+            pubkey,
+            sequence,
+        );
+        assertDefined(gasInfo);
+        return Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
     }
 
     handleError(error: Error) {
