@@ -61,6 +61,7 @@ export default class HandleDeploymentMainnetService extends Service {
                             {
                                 code_id: ctx.params.code_id,
                                 request_id: ctx.params.request_id,
+                                creator_address: ctx.params.creator_address
                             },
                             {
                                 removeOnComplete: true,
@@ -78,6 +79,7 @@ export default class HandleDeploymentMainnetService extends Service {
                                 code_ids: ctx.params.code_ids,
                                 reason: ctx.params.reason,
                                 request_id: ctx.params.request_id,
+                                creator_address: ctx.params.creator_address
                             },
                             {
                                 removeOnComplete: true,
