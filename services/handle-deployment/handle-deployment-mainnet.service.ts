@@ -182,7 +182,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
                 },
                 {
-                    status: MainnetUploadStatus.SUCCESS,
+                    status,
                 }
             );
         } catch (error: any) {
