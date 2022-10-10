@@ -237,13 +237,11 @@ export default class DeploymentService extends MoleculerDBService<
 			if (ids.indexOf(id) % 2 === 0 && ids[ids.indexOf(id) + 1] === '0')
 				code_ids.push(parseInt(id));
 		});
-		for (let id of code_ids) {
-			await this.broker.call('v1.handleDeploymentMainnet.handlerequest', {
-				code_id: id,
-				request_id: ctx.params.request_id,
-				creator_address: request.requester_address
-			});
-		}
+		await this.broker.call('v1.handleDeploymentMainnet.handlerequest', {
+			code_ids,
+			request_id: ctx.params.request_id,
+			creator_address: request.requester_address
+		});
 		return {
 			code: ErrorCode.SUCCESSFUL,
 			message: ErrorMessage.SUCCESSFUL,

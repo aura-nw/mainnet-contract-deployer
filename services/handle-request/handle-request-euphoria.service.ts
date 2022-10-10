@@ -39,7 +39,7 @@ export default class HandleRequestEuphoriaService extends Service {
                 updatestatus: {
                     name: 'updatestatus',
 					rest: 'POST /deployment/request',
-                    handler: (ctx: Context<ContractDeploymentRequest>) => {
+                    handler: (ctx: Context<any>) => {
                         this.logger.debug(`Update request status for contract with code ID ${ctx.params.code_id} on Euphoria`);
                         this.createJob(
                             'handle.request-euphoria',
