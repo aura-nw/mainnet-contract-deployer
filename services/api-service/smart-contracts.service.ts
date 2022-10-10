@@ -3,7 +3,7 @@
 'use strict';
 import { Service, Action } from '@ourparentcenter/moleculer-decorators-extended';
 import { dbSmartContractsMixin } from '../../mixins/dbMixins';
-import { ContractDeploymentRequest, ContractVerification, MoleculerDBService } from '../../types';
+import { ContractVerification, MoleculerDBService } from '../../types';
 import { SmartContracts } from 'entities';
 import { Context } from 'moleculer';
 
@@ -30,7 +30,7 @@ export default class SmartContractsService extends MoleculerDBService<
 	@Action({
 		name: 'getVerifiedContract',
 	})
-	async getVerifiedContract(ctx: Context<ContractDeploymentRequest>) {
+	async getVerifiedContract(ctx: Context<any>) {
 		const result: any = await this.adapter.findOne({
             where: {
                 code_id: ctx.params.code_id,
