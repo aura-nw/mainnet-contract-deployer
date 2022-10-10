@@ -86,6 +86,7 @@ export interface RejectDeploymentParams {
     code_ids: number[];
     reason: string;
     request_id: number;
+    creator_address: string;
 }
 
 export interface GetRequestsParams {

@@ -3,7 +3,7 @@
 'use strict';
 import { Service, Action } from '@ourparentcenter/moleculer-decorators-extended';
 import { dbSmartContractsMixin } from '../../mixins/dbMixins';
-import { ContractDeploymentRequest, ContractVerification, DeploymentRequest, MainnetUploadStatus, MoleculerDBService, RejectDeploymentParams } from '../../types';
+import { ContractDeploymentRequest, ContractVerification, MoleculerDBService } from '../../types';
 import { SmartContracts } from 'entities';
 import { Context } from 'moleculer';
 
