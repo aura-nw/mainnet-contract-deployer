@@ -35,7 +35,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleJob(job.data.code_id, job.data.request_id, job.data.creator_address);
+                        await this.handleJob(job.data.code_idss, job.data.request_id, job.data.creator_address);
                         job.progress(100);
                         return true;
                     },
@@ -59,7 +59,7 @@ export default class HandleDeploymentMainnetService extends Service {
                         this.createJob(
                             'handle.deployment-mainnet',
                             {
-                                code_id: ctx.params.code_id,
+                                code_ids: ctx.params.code_ids,
                                 request_id: ctx.params.request_id,
                                 creator_address: ctx.params.creator_address
                             },
@@ -91,62 +91,104 @@ export default class HandleDeploymentMainnetService extends Service {
         })
     }
 
-    async handleJob(code_id: number, request_id: number, creator_address: string) {
+    async handleJob(code_ids: number[], request_id: number, creator_address: string) {
         try {
-            const client = await CosmWasmClient.connect(Config.BASE_RPC);
-            const codeDetails = await client.getCodeDetails(code_id);
-            this.logger.info('Code details:', codeDetails);
+            for (let code_id of code_ids) {
+                const client = await CosmWasmClient.connect(Config.BASE_RPC);
+                const codeDetails = await client.getCodeDetails(code_id);
+                this.logger.info('Code details:', codeDetails);
 
-            // Get signer
-            const signer = new KMSSigner(Config.SIGNER_WALLET_ADDRESS);
+                // Get signer
+                const signer = new KMSSigner(Config.SIGNER_WALLET_ADDRESS);
 
-            // Get system address info
-            const account = await signer.getAccount();
-            this.logger.info('System account:', account);
+                // Get system address info
+                const account = await signer.getAccount();
+                this.logger.info('System account:', account);
 
-            // Connect network
-            this.network = await Network.connectWithSigner(
-                Config.TARGET_RPC,
-                account,
-                signer,
-                { gasPrice: this.defaultGasPrice }
-            );
+                // Connect network
+                this.network = await Network.connectWithSigner(
+                    Config.TARGET_RPC,
+                    account,
+                    signer,
+                    { gasPrice: this.defaultGasPrice }
+                );
 
-            const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
-            this.logger.info('Code id:', codeId);
+                const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
+                this.logger.info('Code id:', codeId);
 
-            const request: DeploymentRequests = await this.adapter.findOne({ 
-                where: { 
-                    euphoria_code_id: code_id,
-                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING]
-                } 
-            });
+                const [request, _]: [DeploymentRequests, any] = await Promise.all([
+                    this.adapter.findOne({
+                        where: {
+                            euphoria_code_id: code_id,
+                            status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING]
+                        }
+                    }),
+                    this.adapter.updateMany(
+                        {
+                            euphoria_code_id: code_id,
+                            status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
+                        },
+                        {
+                            mainnet_code_id: codeId
+                        }
+                    )
+                ]);
 
-            await this.adapter.updateMany(
-                { 
-                    euphoria_code_id: code_id,
-                    status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
-                },
-                {
-                    mainnet_code_id: codeId,
-                    status: MainnetUploadStatus.SUCCESS,
-                }
-            );
-
-            await this.sendEmail(
-                request.email,
-                'Contract upload on Mainnet successful!',
-                `
+                await this.sendEmail(
+                    request.email,
+                    'Contract upload on Mainnet successful!',
+                    `
                 <p>Your contract source code with code ID ${request.euphoria_code_id} on Euphoria has been uploaded on Mainnet</p>
                 <p>Code ID on Mainnet: ${codeId}</p>
             `,
-            );
+                );
 
-            this.broker.call('v1.handleDeploymentEuphoria.executedeployment', { euphoria_code_id: code_id, mainnet_code_id: codeId, creator_address });
+                this.broker.call('v1.handleDeploymentEuphoria.executedeployment', {
+                    euphoria_code_id: code_id,
+                    mainnet_code_id: codeId,
+                    creator_address,
+                    project_name: request.project_name,
+                    project_description: request.contract_description,
+                    official_project_website: request.official_project_website,
+                    official_project_email: request.official_project_email,
+                    project_sector: request.project_sector,
+                    whitepaper: request.whitepaper,
+                    github: request.github,
+                    telegram: request.telegram,
+                    wechat: request.wechat,
+                    linkedin: request.linkedin,
+                    discord: request.discord,
+                    medium: request.medium,
+                    reddit: request.reddit,
+                    slack: request.slack,
+                    facebook: request.facebook,
+                    twitter: request.twitter,
+                    bitcointalk: request.bitcointalk,
+                });
+            }
+
+            const requests = await this.adapter.find({
+                query: {
+                    request_id,
+                }
+            });
+            let status = MainnetUploadStatus.SUCCESS;
+            requests.map((r: DeploymentRequests) => {
+                if (r.mainnet_code_id === 0) status = MainnetUploadStatus.ERROR;
+            })
+            await this.adapter.updateMany(
+                {
+                    euphoria_code_id: code_ids,
+                    status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
+                },
+                {
+                    status: MainnetUploadStatus.SUCCESS,
+                }
+            );
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
-                { 
+                {
                     request_id,
                 },
                 {
@@ -158,15 +200,15 @@ export default class HandleDeploymentMainnetService extends Service {
 
     async handleRejectionJob(code_ids: number[], reason: string, request_id: number, creator_address: string) {
         try {
-            const request: DeploymentRequests = await this.adapter.findOne({ 
-                where: { 
+            const request: DeploymentRequests = await this.adapter.findOne({
+                where: {
                     euphoria_code_id: code_ids[0],
                     status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING]
-                } 
+                }
             });
 
             await this.adapter.updateMany(
-                { 
+                {
                     request_id,
                     status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
                 },
@@ -189,7 +231,7 @@ export default class HandleDeploymentMainnetService extends Service {
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
-                { 
+                {
                     request_id,
                 },
                 {

@@ -55,6 +55,23 @@ export default class HandleDeploymentEuphoriaService extends Service {
                                 euphoria_code_id: ctx.params.euphoria_code_id,
                                 mainnet_code_id: ctx.params.mainnet_code_id,
                                 creator_address: ctx.params.creator_address,
+                                project_name: ctx.params.project_name,
+                                project_description: ctx.params.project_description,
+                                official_project_website: ctx.params.official_project_website,
+                                official_project_email: ctx.params.official_project_email,
+                                project_sector: ctx.params.project_sector,
+                                whitepaper: ctx.params.whitepaper,
+                                github: ctx.params.github,
+                                telegram: ctx.params.telegram,
+                                wechat: ctx.params.wechat,
+                                linkedin: ctx.params.linkedin,
+                                discord: ctx.params.discord,
+                                medium: ctx.params.medium,
+                                reddit: ctx.params.reddit,
+                                slack: ctx.params.slack,
+                                facebook: ctx.params.facebook,
+                                twitter: ctx.params.twitter,
+                                bitcointalk: ctx.params.bitcointalk,
                             },
                             {
                                 removeOnComplete: true,
@@ -82,9 +99,56 @@ export default class HandleDeploymentEuphoriaService extends Service {
         })
     }
 
-    async handleJob(euphoria_code_id: number, mainnet_code_id: number, creator_address: string) {
+    async handleJob(
+        euphoria_code_id: number,
+        mainnet_code_id: number,
+        creator_address: string,
+        project_name: string,
+        project_description: string,
+        official_project_website: string,
+        official_project_email: string,
+        project_sector: string,
+        whitepaper: string,
+        github: string,
+        telegram: string,
+        wechat: string,
+        linkedin: string,
+        discord: string,
+        medium: string,
+        reddit: string,
+        slack: string,
+        facebook: string,
+        twitter: string,
+        bitcointalk: string,
+    ) {
         this.logger.info("Handle contract deployment request " + euphoria_code_id + " " + mainnet_code_id);
-        await this.adapter.updateMany({ code_id: euphoria_code_id, creator_address }, { reference_code_id: mainnet_code_id, mainnet_upload_status: ContractStatus.DEPLOYED });
+        await this.adapter.updateMany(
+            {
+                code_id: euphoria_code_id,
+                creator_address
+            },
+            {
+                reference_code_id: mainnet_code_id,
+                mainnet_upload_status: ContractStatus.DEPLOYED,
+                project_name,
+                project_description,
+                official_project_website,
+                official_project_email,
+                project_sector,
+                whitepaper,
+                github,
+                telegram,
+                wechat,
+                linkedin,
+                discord,
+                medium,
+                reddit,
+                slack,
+                facebook,
+                twitter,
+                bitcointalk,
+            }
+        );
     }
 
     async handleRejectionJob(code_ids: number[], creator_address: string) {
