@@ -58,7 +58,13 @@ export default class HandleRequestEuphoriaService extends Service {
     }
 
     async handleJob(code_id: number, creator_address: string) {
+        try {
+            this.logger.info(`Update contract(s) with code ID ${code_id} and creator address ${creator_address}`);
         await this.adapter.updateMany({ code_id, creator_address }, { mainnet_upload_status: ContractStatus.TBD });
+        } catch (error) {
+            this.logger.error(`Error update upload status for contract(s) with code ID ${code_id} and creator address ${creator_address}`);
+            this.logger.error(error);
+        }
     }
 
     async _start() {

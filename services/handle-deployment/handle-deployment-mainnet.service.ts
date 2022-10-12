@@ -116,6 +116,7 @@ export default class HandleDeploymentMainnetService extends Service {
                 const codeId = await this.storeCode(account.address, codeDetails.data, AppConstants.AUTO);
                 this.logger.info('Code id:', codeId);
 
+                this.logger.info(`Update request ${request_id} with base code id ${code_id}`);
                 const [request, _]: [DeploymentRequests, any] = await Promise.all([
                     this.adapter.findOne({
                         where: {
@@ -176,6 +177,8 @@ export default class HandleDeploymentMainnetService extends Service {
             requests.map((r: DeploymentRequests) => {
                 if (r.mainnet_code_id === 0) status = MainnetUploadStatus.ERROR;
             })
+
+            this.logger.info(`Update request ${request_id} with status ${status}`);
             await this.adapter.updateMany(
                 {
                     euphoria_code_id: code_ids,
@@ -207,6 +210,7 @@ export default class HandleDeploymentMainnetService extends Service {
                 }
             });
 
+            this.logger.error(`Update request ${request_id} with status ${MainnetUploadStatus.REJECTED}`);
             await this.adapter.updateMany(
                 {
                     request_id,
@@ -251,24 +255,28 @@ export default class HandleDeploymentMainnetService extends Service {
     }
 
     async sendEmail(to: string | undefined, subject: string, html: string) {
-        const transporter = nodemailer.createTransport({
-            host: Config.AURA_HOST,
-            port: Config.AURA_PORT,
-            secureConnection: false,
-            tls: {
-                ciphers: 'SSLv3',
-            },
-            auth: {
-                user: Config.EMAIL_USER,
-                pass: Config.EMAIL_PASSWORD,
-            }
-        });
-        await transporter.sendMail({
-            from: Config.AURA_EMAIL,
-            to,
-            subject,
-            html,
-        });
+        try {
+            const transporter = nodemailer.createTransport({
+                host: Config.AURA_HOST,
+                port: Config.AURA_PORT,
+                secureConnection: false,
+                tls: {
+                    ciphers: 'SSLv3',
+                },
+                auth: {
+                    user: Config.EMAIL_USER,
+                    pass: Config.EMAIL_PASSWORD,
+                }
+            });
+            await transporter.sendMail({
+                from: Config.AURA_EMAIL,
+                to,
+                subject,
+                html,
+            });
+        } catch (error) {
+            this.logger.error(`Error when sending email to ${to}`, error);
+        }
     }
 
     async _start() {
