@@ -76,22 +76,7 @@ export interface UpdateContractStatusRequest {
     mainnet_code_id: number;
     creator_address: string;
     project_name: string;
-    project_description: string;
-    official_project_website: string;
-    official_project_email: string;
-    project_sector: string;
-    whitepaper: string;
-    github: string;
-    telegram: string;
-    wechat: string;
-    linkedin: string;
-    discord: string;
-    medium: string;
-    reddit: string;
-    slack: string;
-    facebook: string;
-    twitter: string;
-    bitcointalk: string;
+    request_id: number;
 }
 
 export interface RejectDeploymentRequest {
