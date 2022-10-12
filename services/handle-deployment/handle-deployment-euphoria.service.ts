@@ -121,7 +121,8 @@ export default class HandleDeploymentEuphoriaService extends Service {
         twitter: string,
         bitcointalk: string,
     ) {
-        this.logger.info("Handle contract deployment request " + euphoria_code_id + " " + mainnet_code_id);
+        try {
+            this.logger.info(`Update contract(s) with code ID ${euphoria_code_id} and creator ${creator_address} with reference code Id ${mainnet_code_id}`);
         await this.adapter.updateMany(
             {
                 code_id: euphoria_code_id,
@@ -149,10 +150,20 @@ export default class HandleDeploymentEuphoriaService extends Service {
                 bitcointalk,
             }
         );
+        } catch (error) {
+            this.logger.error(`Error when update contract(s) with code ID ${euphoria_code_id} and creator ${creator_address} with reference code Id ${mainnet_code_id}`);
+            this.logger.error(error);
+        }
     }
 
     async handleRejectionJob(code_ids: number[], creator_address: string) {
-        await this.adapter.updateMany({ code_id: [...code_ids], creator_address }, { mainnet_upload_status: ContractStatus.REJECTED });
+        try {
+            this.logger.info(`Update contract(s) with code ID ${code_ids} and creator ${creator_address} with status ${ContractStatus.REJECTED}`);
+            await this.adapter.updateMany({ code_id: [...code_ids], creator_address }, { mainnet_upload_status: ContractStatus.REJECTED });
+        } catch (error) {
+            this.logger.error(`Error when update contract(s) with code ID ${code_ids} and creator ${creator_address} with status ${ContractStatus.REJECTED}`);
+            this.logger.error(error);
+        }
     }
 
     async _start() {

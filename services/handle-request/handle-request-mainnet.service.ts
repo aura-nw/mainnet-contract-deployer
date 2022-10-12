@@ -145,39 +145,44 @@ export default class HandleRequestMainnetService extends Service {
         s3_location: string,
         request_id: number
     ) {
-        let deploymentRequest = {
-            name,
-            email,
-            contract_description,
-            project_name,
-            official_project_website,
-            official_project_email,
-            project_sector,
-            whitepaper,
-            github,
-            telegram,
-            wechat,
-            linkedin,
-            discord,
-            medium,
-            reddit,
-            slack,
-            facebook,
-            twitter,
-            bitcointalk,
-            euphoria_code_id: code_id,
-            contract_hash,
-            url,
-            instantiate_msg_schema,
-            query_msg_schema,
-            execute_msg_schema,
-            compiler_version,
-            s3_location,
-            status: MainnetUploadStatus.PENDING,
-            request_id,
-            requester_address,
+        try {
+            let deploymentRequest = {
+                name,
+                email,
+                contract_description,
+                project_name,
+                official_project_website,
+                official_project_email,
+                project_sector,
+                whitepaper,
+                github,
+                telegram,
+                wechat,
+                linkedin,
+                discord,
+                medium,
+                reddit,
+                slack,
+                facebook,
+                twitter,
+                bitcointalk,
+                euphoria_code_id: code_id,
+                contract_hash,
+                url,
+                instantiate_msg_schema,
+                query_msg_schema,
+                execute_msg_schema,
+                compiler_version,
+                s3_location,
+                status: MainnetUploadStatus.PENDING,
+                request_id,
+                requester_address,
+            }
+            this.logger.info(`Create request: ${JSON.stringify(deploymentRequest)}`);
+            await this.adapter.insert(deploymentRequest);
+        } catch (error) {
+            this.logger.error(`Error while creating deployment request: ${error}`);
         }
-        await this.adapter.insert(deploymentRequest);
     }
 
     async _start() {
