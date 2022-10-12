@@ -149,22 +149,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     mainnet_code_id: codeId,
                     creator_address,
                     project_name: request.project_name,
-                    project_description: request.contract_description,
-                    official_project_website: request.official_project_website,
-                    official_project_email: request.official_project_email,
-                    project_sector: request.project_sector,
-                    whitepaper: request.whitepaper,
-                    github: request.github,
-                    telegram: request.telegram,
-                    wechat: request.wechat,
-                    linkedin: request.linkedin,
-                    discord: request.discord,
-                    medium: request.medium,
-                    reddit: request.reddit,
-                    slack: request.slack,
-                    facebook: request.facebook,
-                    twitter: request.twitter,
-                    bitcointalk: request.bitcointalk,
+                    request_id: request.request_id,
                 });
             }
 

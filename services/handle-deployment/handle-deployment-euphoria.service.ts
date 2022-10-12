@@ -28,7 +28,13 @@ export default class HandleDeploymentEuphoriaService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleJob(job.data.euphoria_code_id, job.data.mainnet_code_id, job.data.creator_address);
+                        await this.handleJob(
+                            job.data.euphoria_code_id, 
+                            job.data.mainnet_code_id, 
+                            job.data.creator_address,
+                            job.data.project_name,
+                            job.data.request_id,
+                        );
                         job.progress(100);
                         return true;
                     },
@@ -56,22 +62,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
                                 mainnet_code_id: ctx.params.mainnet_code_id,
                                 creator_address: ctx.params.creator_address,
                                 project_name: ctx.params.project_name,
-                                project_description: ctx.params.project_description,
-                                official_project_website: ctx.params.official_project_website,
-                                official_project_email: ctx.params.official_project_email,
-                                project_sector: ctx.params.project_sector,
-                                whitepaper: ctx.params.whitepaper,
-                                github: ctx.params.github,
-                                telegram: ctx.params.telegram,
-                                wechat: ctx.params.wechat,
-                                linkedin: ctx.params.linkedin,
-                                discord: ctx.params.discord,
-                                medium: ctx.params.medium,
-                                reddit: ctx.params.reddit,
-                                slack: ctx.params.slack,
-                                facebook: ctx.params.facebook,
-                                twitter: ctx.params.twitter,
-                                bitcointalk: ctx.params.bitcointalk,
+                                request_id: ctx.params.request_id,
                             },
                             {
                                 removeOnComplete: true,
@@ -104,22 +95,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
         mainnet_code_id: number,
         creator_address: string,
         project_name: string,
-        project_description: string,
-        official_project_website: string,
-        official_project_email: string,
-        project_sector: string,
-        whitepaper: string,
-        github: string,
-        telegram: string,
-        wechat: string,
-        linkedin: string,
-        discord: string,
-        medium: string,
-        reddit: string,
-        slack: string,
-        facebook: string,
-        twitter: string,
-        bitcointalk: string,
+        request_id: number
     ) {
         try {
             this.logger.info(`Update contract(s) with code ID ${euphoria_code_id} and creator ${creator_address} with reference code Id ${mainnet_code_id}`);
@@ -132,22 +108,7 @@ export default class HandleDeploymentEuphoriaService extends Service {
                 reference_code_id: mainnet_code_id,
                 mainnet_upload_status: ContractStatus.DEPLOYED,
                 project_name,
-                project_description,
-                official_project_website,
-                official_project_email,
-                project_sector,
-                whitepaper,
-                github,
-                telegram,
-                wechat,
-                linkedin,
-                discord,
-                medium,
-                reddit,
-                slack,
-                facebook,
-                twitter,
-                bitcointalk,
+                request_id
             }
         );
         } catch (error) {
