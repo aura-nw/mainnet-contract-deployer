@@ -9,11 +9,12 @@ import { KMSSigner, Network } from "../../utils";
 import { GasPrice, StdFee } from '@cosmjs/stargate';
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 const QueueService = require('moleculer-bull');
-const nodemailer = require("nodemailer");
 import QueueConfig from '../../common/queue';
+import { nodemailerMixin } from "../../mixins/nodemailer/nodemailer.mixin";
 
 export default class HandleDeploymentMainnetService extends Service {
     private callApiMixin = new CallApiMixin().start();
+    private nodemailerMixin = nodemailerMixin;
     private dbDeploymentRequestsMixin = dbDeploymentRequestsMixin;
     private network: Network = {} as Network;
     private defaultGasPrice = GasPrice.fromString(Config.DEFAULT_GAS_PRICE);
@@ -28,6 +29,7 @@ export default class HandleDeploymentMainnetService extends Service {
                 // this.redisMixin,
                 this.dbDeploymentRequestsMixin,
                 this.callApiMixin,
+                this.nodemailerMixin,
             ],
             queues: {
                 'handle.deployment-mainnet': {
@@ -35,7 +37,7 @@ export default class HandleDeploymentMainnetService extends Service {
                     async process(job: Job) {
                         job.progress(10);
                         // @ts-ignore
-                        await this.handleJob(job.data.code_idss, job.data.request_id, job.data.creator_address);
+                        await this.handleJob(job.data.code_ids, job.data.request_id, job.data.creator_address);
                         job.progress(100);
                         return true;
                     },
@@ -241,18 +243,8 @@ export default class HandleDeploymentMainnetService extends Service {
 
     async sendEmail(to: string | undefined, subject: string, html: string) {
         try {
-            const transporter = nodemailer.createTransport({
-                host: Config.AURA_HOST,
-                port: Config.AURA_PORT,
-                secureConnection: false,
-                tls: {
-                    ciphers: 'SSLv3',
-                },
-                auth: {
-                    user: Config.EMAIL_USER,
-                    pass: Config.EMAIL_PASSWORD,
-                }
-            });
+            const transporter = await this.getTransport();
+            this.logger.info('Send email to:', to);
             await transporter.sendMail({
                 from: Config.AURA_EMAIL,
                 to,
