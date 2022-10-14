@@ -13,7 +13,7 @@ export default class NodemailerMixin implements Partial<ServiceSchema>, ThisType
 						this.transporter = nodemailer.createTransport({
                             host: Config.AURA_HOST,
                             port: Config.AURA_PORT,
-                            secureConnection: false,
+                            secureConnection: true,
                             tls: {
                                 ciphers: 'SSLv3',
                             },

@@ -10,7 +10,7 @@ import { GasPrice, StdFee } from '@cosmjs/stargate';
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 const QueueService = require('moleculer-bull');
 import QueueConfig from '../../common/queue';
-import { nodemailerMixin } from "../../mixins/nodemailer/nodemailer.mixin";
+import { nodemailerMixin } from "@Mixins/nodemailer/nodemailer.mixin";
 
 export default class HandleDeploymentMainnetService extends Service {
     private callApiMixin = new CallApiMixin().start();
@@ -95,6 +95,12 @@ export default class HandleDeploymentMainnetService extends Service {
 
     async handleJob(code_ids: number[], request_id: number, creator_address: string) {
         try {
+            // Update request status as processing
+            await this.adapter.updateMany(
+                { request_id },
+                { status: MainnetUploadStatus.PROCESSING }
+            );
+
             for (let code_id of code_ids) {
                 const client = await CosmWasmClient.connect(Config.BASE_RPC);
                 const codeDetails = await client.getCodeDetails(code_id);
@@ -131,14 +137,12 @@ export default class HandleDeploymentMainnetService extends Service {
                             euphoria_code_id: code_id,
                             status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
                         },
-                        {
-                            mainnet_code_id: codeId
-                        }
+                        { mainnet_code_id: codeId }
                     )
                 ]);
 
                 await this.sendEmail(
-                    request.email,
+                    request.email!,
                     'Contract upload on Mainnet successful!',
                     `
                 <p>Your contract source code with code ID ${request.euphoria_code_id} on Euphoria has been uploaded on Mainnet</p>
@@ -171,25 +175,25 @@ export default class HandleDeploymentMainnetService extends Service {
                     euphoria_code_id: code_ids,
                     status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
                 },
-                {
-                    status,
-                }
+                { status }
             );
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
-                {
-                    request_id,
-                },
-                {
-                    status: MainnetUploadStatus.ERROR,
-                }
+                { request_id },
+                { status: MainnetUploadStatus.ERROR }
             );
         }
     }
 
     async handleRejectionJob(code_ids: number[], reason: string, request_id: number, creator_address: string) {
         try {
+            // Update request status as processing
+            await this.adapter.updateMany(
+                { request_id },
+                { status: MainnetUploadStatus.PROCESSING }
+            );
+
             const request: DeploymentRequests = await this.adapter.findOne({
                 where: {
                     euphoria_code_id: code_ids[0],
@@ -210,7 +214,7 @@ export default class HandleDeploymentMainnetService extends Service {
             );
 
             await this.sendEmail(
-                request.email,
+                request.email!,
                 'Request upload contract on Mainnet rejected!',
                 `
                     <p>Your request to upload contract source code with code ID(s) ${code_ids} on Euphoria to Mainnet has been rejected!</p>
@@ -222,12 +226,8 @@ export default class HandleDeploymentMainnetService extends Service {
         } catch (error: any) {
             this.logger.error(error);
             await this.adapter.updateMany(
-                {
-                    request_id,
-                },
-                {
-                    status: MainnetUploadStatus.ERROR,
-                }
+                { request_id },
+                { status: MainnetUploadStatus.ERROR }
             );
         }
     }
@@ -241,7 +241,7 @@ export default class HandleDeploymentMainnetService extends Service {
         return result.codeId;
     }
 
-    async sendEmail(to: string | undefined, subject: string, html: string) {
+    async sendEmail(to: string, subject: string, html: string) {
         try {
             const transporter = await this.getTransport();
             this.logger.info('Send email to:', to);
@@ -252,7 +252,7 @@ export default class HandleDeploymentMainnetService extends Service {
                 html,
             });
         } catch (error) {
-            this.logger.error(`Error when sending email to ${to}`, error);
+            this.logger.error(error)
         }
     }
 
