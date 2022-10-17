@@ -273,4 +273,53 @@ export default class RequestService extends MoleculerDBService<
 		};
 		return response;
 	}
+
+	/**
+	 *  @swagger
+	 *
+	 *  /api/v1/request/project-details:
+	 *    get:
+	 *      tags:
+	 *        - "Requests"
+	 *      summary:  Request to deploy a contract on mainnet
+	 *      description: Request to deploy a contract on mainnet
+	 *      parameters:
+	 *        - in: query
+	 *          name: request_id
+	 *          required: true
+	 *          schema:
+	 *            type: number
+	 *          description: Id of the request
+	 *      responses:
+	 *        200:
+	 *          description: Request result
+	 *        422:
+	 *          description: Missing parameters
+	 */
+	 @Get('/project-details', {
+		name: 'getProjectDetails',
+		/**
+		 * Service guard services allowed to connect
+		 */
+		restricted: ['api'],
+	})
+	async getProjectDetails(ctx: Context<GetRequestsParams>) {
+		let pair_ids: any[] = [];
+		let result: any = await this.broker.call('v1.deployment-requests.getProjectDetails', { request_id: ctx.params.request_id });
+		let ids = result.code_ids.split(',');
+		ids.map((id: any) => {
+			if (ids.indexOf(id) % 2 === 0) {
+				pair_ids.push(id);
+			}
+		});
+		result.code_ids = pair_ids;
+
+		const response: ResponseDto = {
+			code: ErrorCode.SUCCESSFUL,
+			message: ErrorMessage.SUCCESSFUL,
+			data: result
+		};
+
+		return response;
+	}
 }
