@@ -129,13 +129,15 @@ export default class HandleDeploymentMainnetService extends Service {
                     this.adapter.findOne({
                         where: {
                             euphoria_code_id: code_id,
-                            status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING]
+                            request_id,
+                            status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
                         }
                     }),
                     this.adapter.updateMany(
                         {
                             euphoria_code_id: code_id,
-                            status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
+                            request_id,
+                            status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
                         },
                         { mainnet_code_id: codeId }
                     )
@@ -173,7 +175,8 @@ export default class HandleDeploymentMainnetService extends Service {
             await this.adapter.updateMany(
                 {
                     euphoria_code_id: code_ids,
-                    status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
+                    request_id,
+                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
                 },
                 { status }
             );
@@ -196,8 +199,8 @@ export default class HandleDeploymentMainnetService extends Service {
 
             const request: DeploymentRequests = await this.adapter.findOne({
                 where: {
-                    euphoria_code_id: code_ids[0],
-                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING]
+                    request_id,
+                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
                 }
             });
 
@@ -205,7 +208,7 @@ export default class HandleDeploymentMainnetService extends Service {
             await this.adapter.updateMany(
                 {
                     request_id,
-                    status: [MainnetUploadStatus.PENDING, MainnetUploadStatus.ERROR]
+                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
                 },
                 {
                     status: MainnetUploadStatus.REJECTED,
