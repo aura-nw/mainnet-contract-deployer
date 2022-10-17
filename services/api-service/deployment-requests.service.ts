@@ -69,6 +69,21 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 		return result[0];
 	}
 
+	@Action({})
+	async getProjectDetails(ctx: Context<DeploymentRequest>) {
+		// @ts-ignore
+		const result = await this.adapter.db.query(`
+			SELECT contract_description, project_name, official_project_website, official_project_email, whitepaper,
+			github, telegram, discord, facebook, twitter, wechat, linkedin, medium, reddit, slack, bitcointalk, code_ids
+			FROM ( 
+				SELECT *, GROUP_CONCAT(DISTINCT CONCAT(euphoria_code_id,',',mainnet_code_id) SEPARATOR ',') AS code_ids 
+				FROM deployment_requests
+				GROUP BY request_id) dr 
+			WHERE request_id = ${ctx.params.request_id};
+		`, { type: 'SELECT' });
+		return result[0];
+	}
+
 	@Action({
 		name: 'getLatestRequestId',
 	})
