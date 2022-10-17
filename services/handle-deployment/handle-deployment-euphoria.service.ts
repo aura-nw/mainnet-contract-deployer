@@ -29,8 +29,8 @@ export default class HandleDeploymentEuphoriaService extends Service {
                         job.progress(10);
                         // @ts-ignore
                         await this.handleJob(
-                            job.data.euphoria_code_id, 
-                            job.data.mainnet_code_id, 
+                            job.data.euphoria_code_id,
+                            job.data.mainnet_code_id,
                             job.data.creator_address,
                             job.data.project_name,
                             job.data.request_id,
@@ -99,18 +99,18 @@ export default class HandleDeploymentEuphoriaService extends Service {
     ) {
         try {
             this.logger.info(`Update contract(s) with code ID ${euphoria_code_id} and creator ${creator_address} with reference code Id ${mainnet_code_id}`);
-        await this.adapter.updateMany(
-            {
-                code_id: euphoria_code_id,
-                creator_address
-            },
-            {
-                reference_code_id: mainnet_code_id,
-                mainnet_upload_status: ContractStatus.DEPLOYED,
-                project_name,
-                request_id
-            }
-        );
+            await this.adapter.updateMany(
+                {
+                    code_id: euphoria_code_id,
+                    creator_address
+                },
+                {
+                    reference_code_id: mainnet_code_id,
+                    mainnet_upload_status: ContractStatus.DEPLOYED,
+                    project_name,
+                    request_id
+                }
+            );
         } catch (error) {
             this.logger.error(`Error when update contract(s) with code ID ${euphoria_code_id} and creator ${creator_address} with reference code Id ${mainnet_code_id}`);
             this.logger.error(error);

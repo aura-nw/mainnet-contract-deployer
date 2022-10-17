@@ -41,6 +41,8 @@ const dbBaseMixin = new DbBaseMixin({
             token_name: String,
             token_symbol: String,
             num_tokens: Number,
+            project_name: String,
+            request_id: Number,
         }
     },
 });
