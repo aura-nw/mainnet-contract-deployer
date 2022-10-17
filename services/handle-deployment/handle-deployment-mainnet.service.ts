@@ -129,15 +129,13 @@ export default class HandleDeploymentMainnetService extends Service {
                     this.adapter.findOne({
                         where: {
                             euphoria_code_id: code_id,
-                            request_id,
-                            status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
+                            request_id
                         }
                     }),
                     this.adapter.updateMany(
                         {
                             euphoria_code_id: code_id,
-                            request_id,
-                            status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
+                            request_id
                         },
                         { mainnet_code_id: codeId }
                     )
@@ -173,11 +171,7 @@ export default class HandleDeploymentMainnetService extends Service {
 
             this.logger.info(`Update request ${request_id} with status ${status}`);
             await this.adapter.updateMany(
-                {
-                    euphoria_code_id: code_ids,
-                    request_id,
-                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
-                },
+                { request_id },
                 { status }
             );
         } catch (error: any) {
@@ -199,16 +193,14 @@ export default class HandleDeploymentMainnetService extends Service {
 
             const request: DeploymentRequests = await this.adapter.findOne({
                 where: {
-                    request_id,
-                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
+                    request_id
                 }
             });
 
             this.logger.error(`Update request ${request_id} with status ${MainnetUploadStatus.REJECTED}`);
             await this.adapter.updateMany(
                 {
-                    request_id,
-                    status: [MainnetUploadStatus.ERROR, MainnetUploadStatus.PENDING, MainnetUploadStatus.PROCESSING]
+                    request_id
                 },
                 {
                     status: MainnetUploadStatus.REJECTED,
