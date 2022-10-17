@@ -10,7 +10,7 @@ import { GasPrice, StdFee } from '@cosmjs/stargate';
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 const QueueService = require('moleculer-bull');
 import QueueConfig from '../../common/queue';
-import { nodemailerMixin } from "@Mixins/nodemailer/nodemailer.mixin";
+import { nodemailerMixin } from "../../mixins/nodemailer/nodemailer.mixin";
 
 export default class HandleDeploymentMainnetService extends Service {
     private callApiMixin = new CallApiMixin().start();
