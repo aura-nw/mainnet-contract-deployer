@@ -69,7 +69,9 @@ export default class DeploymentRequestsService extends MoleculerDBService<
 		return result[0];
 	}
 
-	@Action({})
+	@Action({
+		name: 'getProjectDetails',
+	})
 	async getProjectDetails(ctx: Context<DeploymentRequest>) {
 		// @ts-ignore
 		const result = await this.adapter.db.query(`
