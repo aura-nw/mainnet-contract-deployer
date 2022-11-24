@@ -167,6 +167,7 @@ export default class HandleRequestMainnetService extends Service {
                 twitter,
                 bitcointalk,
                 euphoria_code_id: code_id,
+                mainnet_code_id: 0,
                 contract_hash,
                 url,
                 instantiate_msg_schema,
